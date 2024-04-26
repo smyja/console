@@ -3,8 +3,16 @@ defmodule Console.Deployments.Services do
   use Nebulex.Caching
   import Console.Deployments.Policies
   alias Console.PubSub
-  alias Console.Schema.{Service, ServiceComponent, Revision, User, Cluster, ClusterProvider, ApiDeprecation, GitRepository, ServiceContext}
-  alias Console.Deployments.{Secrets.Store, Settings, Git, Clusters, Deprecations.Checker, AddOns, Tar}
+  alias Console.Schema.{Service, ServiceComponent, Revision, User, Cluster, ClusterProvider, ApiDeprecation, GitRepository, ServiceContext, ServiceDependency}
+  alias Console.Deployments.{
+    Secrets.Store,
+    Settings,
+    Git,
+    Clusters,
+    Deprecations.Checker,
+    AddOns,
+    Tar,
+  }
   alias Console.Deployments.Helm
   require Logger
 
@@ -80,21 +88,27 @@ defmodule Console.Deployments.Services do
   before sending it upstream to the given client.
   """
   @spec tarstream(Service.t) :: {:ok, File.t} | Console.error
-  def tarstream(%Service{repository_id: id, helm: %Service.Helm{chart: c, values_files: [_ | _] = files} = helm} = svc) when is_binary(id) and is_binary(c) do
+  def tarstream(%Service{repository_id: id, helm: %Service.Helm{repository_id: rid, chart: c, values_files: [_ | _] = files} = helm} = svc)
+      when is_binary(id) and (is_binary(c) or is_binary(rid)) do
     with {:ok, f} <- Git.Discovery.fetch(svc),
          {:ok, contents} <- Tar.tar_stream(f),
          contents = Map.new(contents),
-         {:ok, f, _} <- Helm.Charts.artifact(svc),
-         splice <- Map.take(contents, files)
-                   |> maybe_values(helm),
-      do: Tar.splice(f, splice)
+         {:ok, chart} <- tarfile(%{svc | norevise: true}),
+         splice <- Map.take(contents, files) |> maybe_values(helm),
+      do: Tar.splice(chart, splice)
   end
+
   def tarstream(%Service{helm: %Service.Helm{values: values}} = svc) when is_binary(values) do
     with {:ok, tar} <- tarfile(svc),
       do: Tar.splice(tar, %{"values.yaml.static" => values})
   end
+
   def tarstream(%Service{} = svc), do: tarfile(svc)
 
+  defp tarfile(%Service{helm: %Service.Helm{repository_id: id, git: %{} = git}}) when is_binary(id) do
+    Git.get_repository!(id)
+    |> Git.Discovery.fetch(git)
+  end
   defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v}} = svc) when is_binary(c) and is_binary(v) do
     with {:ok, f, sha} <- Helm.Charts.artifact(svc),
          {:ok, _} <- update_sha_without_revision(svc, sha),
@@ -203,6 +217,19 @@ defmodule Console.Deployments.Services do
   end
   def authorized(_, _), do: {:error, "could not find service in cluster"}
 
+  @doc """
+  Determines if all dependencies for a service have been satisfied
+  """
+  @spec dependencies_ready(Service.t) :: service_resp
+  def dependencies_ready(%Service{} = svc) do
+    with %{dependencies: [_ | _] = deps} <- Repo.preload(svc, [:dependencies]),
+         dep when not is_nil(dep) <- Enum.find(deps, & &1.status != :healthy) do
+      {:error, "dependency #{dep.name} is not ready"}
+    else
+      _ -> {:ok, svc}
+    end
+  end
+
   def add_errors(%Service{id: svc_id}, errors) do
     get_service(svc_id)
     |> Repo.preload([:errors])
@@ -269,6 +296,7 @@ defmodule Console.Deployments.Services do
     start_transaction()
     |> add_operation(:source, fn _ ->
       get_service!(service_id)
+      |> Repo.preload([:dependencies, :context_bindings])
       |> allow(user, :write)
     end)
     |> add_operation(:config, fn %{source: source} ->
@@ -280,6 +308,7 @@ defmodule Console.Deployments.Services do
       |> Console.dedupe(:git, Console.mapify(source.git))
       |> Console.dedupe(:helm, Console.mapify(source.helm))
       |> Console.dedupe(:kustomize, Console.mapify(source.kustomize))
+      |> Console.dedupe(:dependencies, Enum.map(source.dependencies, & %{name: &1.name}))
       |> Map.merge(attrs)
       |> Map.put(:configuration, config)
       |> create_service(cluster_id, user)
@@ -359,6 +388,7 @@ defmodule Console.Deployments.Services do
     |> notify(:update, :ignore)
   end
 
+  defp update_sha_without_revision(%Service{norevise: true} = svc, _), do: {:ok, svc}
   defp update_sha_without_revision(%Service{revision: %Revision{sha: sha}} = svc, sha), do: {:ok, svc}
   defp update_sha_without_revision(%Service{id: id}, sha) do
     start_transaction()
@@ -383,7 +413,7 @@ defmodule Console.Deployments.Services do
   def update_service(attrs, %Service{} = svc) do
     start_transaction()
     |> add_operation(:base, fn _ ->
-      Repo.preload(svc, [:context_bindings, :read_bindings, :write_bindings])
+      Repo.preload(svc, [:context_bindings, :dependencies, :read_bindings, :write_bindings])
       |> Service.changeset(Map.put(attrs, :status, :stale))
       |> Service.update_changeset()
       |> Console.Repo.update()
@@ -508,6 +538,15 @@ defmodule Console.Deployments.Services do
         {_, _, true, _} -> update_status(service, :healthy, component_status)
         _ -> update_status(service, :stale, component_status)
       end
+    end)
+    |> add_operation(:dependencies, fn
+      %{service: %{status: s}, updated: %{status: :healthy} = svc} when s != :healthy ->
+        ServiceDependency.for_cluster(svc.cluster_id)
+        |> ServiceDependency.for_name(svc.name)
+        |> ServiceDependency.pending()
+        |> Repo.update_all(set: [status: :healthy])
+        |> ok()
+      _ -> {:ok, nil}
     end)
     |> execute(extract: :updated)
     |> notify(:components)

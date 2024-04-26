@@ -14,6 +14,8 @@ defmodule Console.Deployments.Stacks do
     GitRepository
   }
 
+  @preloads [:environment, :files, :observable_metrics]
+
   @type error :: Console.error
   @type stack_resp :: {:ok, Stack.t} | error
   @type run_resp :: {:ok, StackRun.t} | error
@@ -28,6 +30,8 @@ defmodule Console.Deployments.Stacks do
 
   @spec get_step!(binary) :: RunStep.t
   def get_step!(id), do: Repo.get!(RunStep, id)
+
+  def preloaded(%Stack{} = stack), do: Repo.preload(stack, @preloads)
 
   @spec authorized(binary, Cluster.t) :: run_resp
   def authorized(run_id, cluster) do
@@ -53,6 +57,7 @@ defmodule Console.Deployments.Stacks do
   @spec update_stack(map, binary, User.t) :: stack_resp
   def update_stack(attrs, id, %User{} = user) do
     get_stack!(id)
+    |> preloaded()
     |> Stack.changeset(attrs)
     |> allow(user, :write)
     |> when_ok(:update)
@@ -198,8 +203,10 @@ defmodule Console.Deployments.Stacks do
       %StackRun{stack_id: stack.id, status: :queued}
       |> StackRun.changeset(
         Repo.preload(stack, [:environment, :files])
-        |> Map.take(~w(approval configuration type environment files job_spec repository_id cluster_id)a)
+        |> Map.take(~w(approval dry_run configuration type environment files job_spec repository_id cluster_id)a)
         |> Console.clean()
+        |> Map.update(:environment, [], fn env -> Enum.map(env, &Map.delete(&1, :stack_id)) end)
+        |> Map.update(:files, [], fn files -> Enum.map(files, &Map.delete(&1, :stack_id)) end)
         |> Map.put(:git, %{ref: sha, folder: stack.git.folder})
         |> Map.put(:steps, commands(stack, !!attrs[:dry_run]))
         |> Map.merge(attrs)

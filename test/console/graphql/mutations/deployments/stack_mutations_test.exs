@@ -16,6 +16,8 @@ defmodule Console.GraphQl.Deployments.StackMutationsTest do
             repository { id }
             git { ref folder }
             configuration { version }
+            environment { name value secret }
+            files { path content }
           }
         }
       """, %{"attrs" => %{
@@ -24,7 +26,9 @@ defmodule Console.GraphQl.Deployments.StackMutationsTest do
         "repositoryId" => repo.id,
         "clusterId" => cluster.id,
         "git" => %{"ref" => "main", "folder" => "terraform"},
-        "configuration" => %{"version" => "1.7.0"}
+        "configuration" => %{"version" => "1.7.0"},
+        "environment" => [%{"secret" => true, "name" => "TEST_ENV_VAR", "value" => "dummy"}],
+        "files" => [%{"path" => "test", "content" => "test"}]
       }}, %{current_user: admin_user()})
 
       assert found["id"]
@@ -35,6 +39,15 @@ defmodule Console.GraphQl.Deployments.StackMutationsTest do
       assert found["git"]["ref"] == "main"
       assert found["git"]["folder"] == "terraform"
       assert found["configuration"]["version"] == "1.7.0"
+
+      [env] = found["environment"]
+      assert env["name"] == "TEST_ENV_VAR"
+      assert env["value"] == "dummy"
+      assert env["secret"]
+
+      [file] = found["files"]
+      assert file["path"] == "test"
+      assert file["content"] == "test"
     end
   end
 
@@ -116,7 +129,7 @@ defmodule Console.GraphQl.Deployments.StackMutationsTest do
           approveStackRun(id: $id) {
             id
             approvedAt
-            approver { id }
+            approver { id name }
           }
         }
       """, %{"id" => run.id}, %{current_user: admin})
@@ -124,6 +137,7 @@ defmodule Console.GraphQl.Deployments.StackMutationsTest do
       assert found["id"] == run.id
       assert found["approvedAt"]
       assert found["approver"]["id"] == admin.id
+      assert found["approver"]["name"] == admin.name
     end
   end
 

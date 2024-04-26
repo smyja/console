@@ -11,7 +11,8 @@ defmodule Console.Deployments.Cron do
     PipelinePromotion,
     AgentMigration,
     ManagedNamespace,
-    Stack
+    Stack,
+    StackRun
   }
   alias Console.Deployments.Pipelines.Discovery
 
@@ -97,6 +98,17 @@ defmodule Console.Deployments.Cron do
     |> Stream.each(fn svc ->
       Logger.info "pruning revisions for #{svc.id}"
       Services.prune_revisions(svc)
+    end)
+    |> Stream.run()
+  end
+
+  def update_upgrade_plans() do
+    Cluster.installed()
+    |> Cluster.stream()
+    |> Repo.stream(method: :keyset)
+    |> Stream.each(fn cluster ->
+      Logger.info "compiling upgrade plan for #{cluster.handle}"
+      Clusters.update_upgrade_plan(cluster)
     end)
     |> Stream.run()
   end
@@ -213,6 +225,7 @@ defmodule Console.Deployments.Cron do
       Logger.info "polling stack repository #{stack.id}"
       Stacks.poll(stack)
     end)
+    |> Stream.run()
   end
 
   def dequeue_stacks() do
@@ -222,5 +235,16 @@ defmodule Console.Deployments.Cron do
       Logger.info "dequeuing eligible stack runs #{stack.id}"
       Stacks.dequeue(stack)
     end)
+    |> Stream.run()
+  end
+
+  def place_run_workers() do
+    StackRun.running()
+    |> Repo.stream(method: :keyset)
+    |> Stream.each(fn run ->
+      Logger.info "ensuring run worker #{run.id} is placed"
+      Stacks.Discovery.runner(run)
+    end)
+    |> Stream.run()
   end
 end

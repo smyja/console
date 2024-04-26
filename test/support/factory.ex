@@ -555,6 +555,28 @@ defmodule Console.Factory do
     }
   end
 
+  def observability_provider_factory do
+    %Schema.ObservabilityProvider{
+      type: :datadog,
+      name: sequence(:obsv_provider, & "obs-#{&1}"),
+      credentials: %{datadog: %{api_key: "api", app_key: "app"}}
+    }
+  end
+
+  def service_dependency_factory do
+    %Schema.ServiceDependency{
+      name: sequence(:svc_dep, & "service-#{&1}"),
+      service: build(:service)
+    }
+  end
+
+  def observable_metric_factory do
+    %Schema.ObservableMetric{
+      identifier: sequence(:obsv_metric, & "obs-metric-#{&1}"),
+      provider: build(:observability_provider)
+    }
+  end
+
   def setup_rbac(user, repos \\ ["*"], perms) do
     role = insert(:role, repositories: repos, permissions: Map.new(perms))
     insert(:role_binding, role: role, user: user)
