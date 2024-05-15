@@ -39,6 +39,7 @@ defmodule Console.Schema.Stack do
     field :name,            :string
     field :type,            Type
     field :status,          Status
+    field :paused,          :boolean, default: false
     field :approval,        :boolean
     field :sha,             :string
     field :last_successful, :string
@@ -56,7 +57,9 @@ defmodule Console.Schema.Stack do
     belongs_to :delete_run, StackRun
     belongs_to :connection, ScmConnection
 
-    has_one :state, StackState, on_replace: :update
+    has_one :state, StackState,
+      on_replace: :update,
+      foreign_key: :stack_id
 
     has_many :environment, StackEnvironment, on_replace: :delete
     has_many :files,       StackFile, on_replace: :delete
@@ -77,6 +80,10 @@ defmodule Console.Schema.Stack do
     timestamps()
   end
 
+  def search(query \\ __MODULE__, sq) do
+    from(s in query, where: ilike(s.name, ^"#{sq}%"))
+  end
+
   def for_user(query \\ __MODULE__, %User{} = user) do
     Rbac.globally_readable(query, user, fn query, id, groups ->
       from(s in query,
@@ -88,13 +95,17 @@ defmodule Console.Schema.Stack do
     end)
   end
 
+  def unpaused(query \\ __MODULE__) do
+    from(s in query, where: not s.paused or is_nil(s.paused))
+  end
+
   def ordered(query \\ __MODULE__, order \\ [asc: :name]) do
     from(s in query, order_by: ^order)
   end
 
   def stream(query \\ __MODULE__), do: ordered(query, asc: :id)
 
-  @valid ~w(name type status approval connection_id repository_id cluster_id)a
+  @valid ~w(name type paused status approval connection_id repository_id cluster_id)a
 
   def changeset(model, attrs \\ %{}) do
     model

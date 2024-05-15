@@ -2,11 +2,14 @@ defmodule Console.Schema.PolicyConstraint do
   use Piazza.Ecto.Schema
   alias Console.Schema.{Cluster, ConstraintViolation}
 
+  defenum Enforcement, warn: 0, deny: 1, dry_run: 2
+
   schema "policy_constraints" do
     field :name,            :string
     field :description,     :string
     field :recommendation,  :string
     field :violation_count, :integer
+    field :enforcement,     Enforcement
 
     embeds_one :ref, Ref, on_replace: :update do
       field :kind, :string
@@ -35,10 +38,6 @@ defmodule Console.Schema.PolicyConstraint do
     )
   end
 
-  def globally_ordered(query \\ __MODULE__) do
-    from([p, clusters: c] in query, order_by: [asc: c.name, asc: p.name])
-  end
-
   def for_cluster(query \\ __MODULE__, cluster_id) do
     from(p in query, where: p.cluster_id == ^cluster_id)
   end
@@ -61,7 +60,16 @@ defmodule Console.Schema.PolicyConstraint do
     )
   end
 
-  def for_namespaces(query \\ __MODULE__, ns) do
+  def for_namespaces(query \\ __MODULE__, ns, cluster)
+
+  def for_namespaces(query, ns, true) do
+    from(p in query,
+      join: v in assoc(p, :violations),
+      where: v.namespace in ^ns or is_nil(v.namespace)
+    )
+  end
+
+  def for_namespaces(query, ns, _) do
     from(p in query,
       join: v in assoc(p, :violations),
       where: v.namespace in ^ns
@@ -87,11 +95,52 @@ defmodule Console.Schema.PolicyConstraint do
     )
   end
 
-  def ordered(query \\ __MODULE__, order \\ [asc: :name]) do
+  def aggregate(query, :cluster) do
+    q = cluster_violations(query)
+    from(p in subquery(q),
+      group_by: p.exists,
+      select: %{aggregate: p.exists, count: count(p.cluster_id, :distinct)}
+    )
+  end
+
+  def aggregate(_query, :installed) do
+    from(p in subquery(installed_clusters()),
+      group_by: p.installed,
+      select: %{aggregate: p.installed, count: count(p.cluster_id, :distinct)}
+    )
+  end
+
+  def aggregate(query, :enforcement) do
+    from(p in query,
+      group_by: p.enforcement,
+      select: %{aggregate: p.enforcement, count: count(p.id, :distinct)}
+    )
+  end
+
+  defp cluster_violations(query) do
+    from(p in query,
+      left_join: v in assoc(p, :violations),
+      group_by: p.cluster_id,
+      select: %{cluster_id: p.cluster_id, exists: fragment("CASE WHEN ? > 0 THEN 'exists' ELSE 'none' END", count(v.id, :distinct))}
+    )
+  end
+
+  defp installed_clusters() do
+    from(c in Cluster,
+      left_join: p in __MODULE__,
+        on: p.cluster_id == c.id,
+      group_by: c.id,
+      select: %{cluster_id: c.id, installed: fragment("CASE WHEN ? > 0 THEN 'installed' ELSE 'uninstalled' END", count(p.id, :distinct))}
+    )
+  end
+
+  def distinct(query), do: from(p in query, distinct: true)
+
+  def ordered(query \\ __MODULE__, order \\ [asc: :name, asc: :cluster_id]) do
     from(p in query, order_by: ^order)
   end
 
-  @valid ~w(name description recommendation violation_count)a
+  @valid ~w(name description recommendation violation_count enforcement)a
 
   def changeset(model, attrs \\ %{}) do
     model

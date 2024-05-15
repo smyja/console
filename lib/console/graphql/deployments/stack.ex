@@ -82,6 +82,7 @@ defmodule Console.GraphQl.Deployments.Stack do
     field :name,                non_null(:string), description: "the name of the stack"
     field :type,                non_null(:stack_type), description: "A type for the stack, specifies the tool to use to apply it"
     field :git,                 non_null(:git_ref), description: "reference w/in the repository where the IaC lives"
+    field :paused,              :boolean, description: "whether the stack is actively tracking changes in git"
     field :job_spec,            :job_gate_spec, description: "optional k8s job configuration for the job that will apply this stack"
     field :configuration,       non_null(:stack_configuration), description: "version/image config for the tool you're using"
     field :approval,            :boolean, description: "whether to require approval"
@@ -105,8 +106,8 @@ defmodule Console.GraphQl.Deployments.Stack do
     field :output, list_of(:stack_output), resolve: dataloader(Deployments), description: "the most recent output for this stack"
     field :state,  :stack_state, resolve: dataloader(Deployments), description: "the most recent state of this stack"
 
-    field :cluster,         :cluster, resolve: dataloader(Deployments), description: "the cluster this stack runs on"
-    field :repository,      :git_repository, resolve: dataloader(Deployments), description: "the git repository you're sourcing IaC from"
+    field :cluster,    :cluster, resolve: dataloader(Deployments), description: "the cluster this stack runs on"
+    field :repository, :git_repository, resolve: dataloader(Deployments), description: "the git repository you're sourcing IaC from"
 
     field :read_bindings,  list_of(:policy_binding), resolve: dataloader(Deployments)
     field :write_bindings, list_of(:policy_binding), resolve: dataloader(Deployments)
@@ -127,6 +128,7 @@ defmodule Console.GraphQl.Deployments.Stack do
     field :job_spec,       :job_gate_spec, description: "optional k8s job configuration for the job that will apply this stack"
     field :configuration,  non_null(:stack_configuration), description: "version/image config for the tool you're using"
     field :approval,       :boolean, description: "whether to require approval"
+    field :message,        :string, description: "the commit message"
     field :approved_at,    :datetime, description: "when this run was approved"
 
     field :tarball, non_null(:string), resolve: &Deployments.stack_tarball/3, description: "https url to fetch the latest tarball of stack IaC"
@@ -198,12 +200,14 @@ defmodule Console.GraphQl.Deployments.Stack do
     field :identifier,    non_null(:string), description: "a string identifier for this resource, different tools will have different conventions"
     field :resource,      non_null(:string), description: "a string name of the resource type"
     field :name,          non_null(:string), description: "the name of the resource within that type"
-    field :configuration, :json, description: "arbitrary configuration used to create the resource"
+    field :configuration, :map, description: "arbitrary configuration used to create the resource"
     field :links,         list_of(:string), description: "identifiers this resource is linked to for graphing in the UI"
   end
 
   connection node_type: :infrastructure_stack
   connection node_type: :stack_run
+
+  delta :run_logs
 
   object :public_stack_queries do
     connection field :cluster_stack_runs, node_type: :stack_run do
@@ -264,6 +268,7 @@ defmodule Console.GraphQl.Deployments.Stack do
 
     connection field :infrastructure_stacks, node_type: :infrastructure_stack do
       middleware Authenticated
+      arg :q, :string
 
       resolve &Deployments.list_stacks/2
     end
@@ -304,6 +309,17 @@ defmodule Console.GraphQl.Deployments.Stack do
       arg :id, non_null(:id)
 
       resolve &Deployments.approve_stack_run/2
+    end
+  end
+
+  object :stack_subscriptions do
+    field :run_logs_delta, :run_logs_delta do
+      arg :step_id, non_null(:id)
+
+      config fn %{step_id: step_id}, ctx ->
+        with {:ok, step} <- Deployments.resolve_run_step(step_id, ctx),
+          do: {:ok, topic: "steps:#{step.id}"}
+      end
     end
   end
 end

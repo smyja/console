@@ -9,6 +9,7 @@ defmodule Console.GraphQl.Resolvers.Deployments.Stack do
 
   def list_stacks(args, %{context: %{current_user: user}}) do
     Stack.for_user(user)
+    |> maybe_search(Stack, args)
     |> Stack.ordered()
     |> paginate(args)
   end
@@ -44,6 +45,11 @@ defmodule Console.GraphQl.Resolvers.Deployments.Stack do
   def resolve_stack_run(%{id: id}, ctx) do
     Stacks.get_run!(id)
     |> allow(actor(ctx), :read)
+  end
+
+  def resolve_run_step(step_id, %{context: %{current_user: user}}) do
+    Stacks.get_step!(step_id)
+    |> allow(user, :read)
   end
 
   def create_stack(%{attributes: attrs}, %{context: %{current_user: user}}),

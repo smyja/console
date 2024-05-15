@@ -335,6 +335,10 @@ type RootQueryType {
 
   violationStatistics(field: ConstraintViolationField!): [ViolationStatistic]
 
+  policyStatistics(
+    aggregate: PolicyAggregate!, kind: String, namespace: String, kinds: [String], namespaces: [String], clusters: [ID], q: String
+  ): [PolicyStatistic]
+
   policyConstraint(id: ID!): PolicyConstraint
 
   managedNamespaces(after: String, first: Int, before: String, last: Int): ManagedNamespaceConnection
@@ -353,7 +357,7 @@ type RootQueryType {
 
   infrastructureStack(id: ID!): InfrastructureStack
 
-  infrastructureStacks(after: String, first: Int, before: String, last: Int): InfrastructureStackConnection
+  infrastructureStacks(after: String, first: Int, before: String, last: Int, q: String): InfrastructureStackConnection
 
   observabilityProvider(id: ID!): ObservabilityProvider
 
@@ -506,6 +510,10 @@ type RootMutationType {
 
   "just registers a pointer record to a PR after it was created externally be some other automation"
   createPullRequestPointer(attributes: PullRequestAttributes): PullRequest
+
+  updatePullRequest(id: ID!, attributes: PullRequestUpdateAttributes): PullRequest
+
+  deletePullRequest(id: ID!): PullRequest
 
   createCluster(attributes: ClusterAttributes!): Cluster
 
@@ -727,6 +735,7 @@ type RootSubscriptionType {
   buildDelta(buildId: ID): BuildDelta
   commandDelta(buildId: ID!): CommandDelta
   notificationDelta: NotificationDelta
+  runLogsDelta(stepId: ID!): RunLogsDelta
 }
 
 input PolicyBindingAttributes {
@@ -878,11 +887,16 @@ input ObservabilityProviderAttributes {
 
 input ObservabilityProviderCredentialsAttributes {
   datadog: DatadogCredentialsAttributes
+  newrelic: NewRelicCredentialsAttributes
 }
 
 input DatadogCredentialsAttributes {
   apiKey: String!
   appKey: String!
+}
+
+input NewRelicCredentialsAttributes {
+  apiKey: String!
 }
 
 input ObservableMetricAttributes {
@@ -936,6 +950,7 @@ enum StepStage {
   PLAN
   VERIFY
   APPLY
+  INIT
 }
 
 input StackAttributes {
@@ -1058,6 +1073,9 @@ type InfrastructureStack {
   "reference w\/in the repository where the IaC lives"
   git: GitRef!
 
+  "whether the stack is actively tracking changes in git"
+  paused: Boolean
+
   "optional k8s job configuration for the job that will apply this stack"
   jobSpec: JobGateSpec
 
@@ -1135,6 +1153,9 @@ type StackRun {
 
   "whether to require approval"
   approval: Boolean
+
+  "the commit message"
+  message: String
 
   "when this run was approved"
   approvedAt: DateTime
@@ -1228,7 +1249,7 @@ type StackStateResource {
   name: String!
 
   "arbitrary configuration used to create the resource"
-  configuration: Json
+  configuration: Map
 
   "identifiers this resource is linked to for graphing in the UI"
   links: [String]
@@ -1242,6 +1263,11 @@ type InfrastructureStackConnection {
 type StackRunConnection {
   pageInfo: PageInfo!
   edges: [StackRunEdge]
+}
+
+type RunLogsDelta {
+  delta: Delta
+  payload: RunLogs
 }
 
 "A reference for a globalized service, which targets clusters based on the configured criteria"
@@ -1258,7 +1284,13 @@ input GlobalServiceAttributes {
   "cluster api provider to target"
   providerId: ID
 
+  "whether you want the global service to take ownership of existing plural services"
+  reparent: Boolean
+
   template: ServiceTemplateAttributes
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: CascadeAttributes
 }
 
 "Attributes for configuring a managed namespace"
@@ -1281,6 +1313,9 @@ input ManagedNamespaceAttributes {
   service: ServiceTemplateAttributes
 
   target: ClusterTargetAttributes
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: CascadeAttributes
 }
 
 "Attributes for configuring a service in something like a managed namespace"
@@ -1327,6 +1362,12 @@ input ClusterTargetAttributes {
   distro: ClusterDistro
 }
 
+"Whether you want to delete or detach owned resources"
+input CascadeAttributes {
+  delete: Boolean
+  detach: Boolean
+}
+
 "a rules based mechanism to redeploy a service across a fleet of clusters"
 type GlobalService {
   "internal id of this global service"
@@ -1340,6 +1381,12 @@ type GlobalService {
 
   "the kubernetes distribution to target with this global service"
   distro: ClusterDistro
+
+  "whether you want to reparent existing plural services under this global service"
+  reparent: Boolean
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: Cascade
 
   "the service template used to spawn services"
   template: ServiceTemplate
@@ -1381,6 +1428,9 @@ type ManagedNamespace {
 
   "the timestamp this namespace was deleted at, indicating it's currently draining"
   deletedAt: DateTime
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: Cascade
 
   "A template for creating the core service for this namespace"
   service: ServiceTemplate
@@ -1437,6 +1487,15 @@ type ClusterTarget {
   distro: ClusterDistro
 }
 
+"A spec for specifying cascade behavior on an owning resource"
+type Cascade {
+  "whether to perform a drain-delete for all owned resources"
+  delete: Boolean
+
+  "whether to perform a detach-delete for all owned resources"
+  detach: Boolean
+}
+
 type GlobalServiceConnection {
   pageInfo: PageInfo!
   edges: [GlobalServiceEdge]
@@ -1445,6 +1504,18 @@ type GlobalServiceConnection {
 type ManagedNamespaceConnection {
   pageInfo: PageInfo!
   edges: [ManagedNamespaceEdge]
+}
+
+enum ConstraintEnforcement {
+  WARN
+  DENY
+  DRY_RUN
+}
+
+enum PolicyAggregate {
+  CLUSTER
+  ENFORCEMENT
+  INSTALLED
 }
 
 enum ConstraintViolationField {
@@ -1466,6 +1537,8 @@ input PolicyConstraintAttributes {
   ref: ConstraintRefAttributes
 
   violations: [ViolationAttributes]
+
+  enforcement: ConstraintEnforcement
 }
 
 input ConstraintRefAttributes {
@@ -1494,6 +1567,8 @@ type PolicyConstraint {
 
   violationCount: Int
 
+  enforcement: ConstraintEnforcement
+
   "Fetches the live constraint object from K8s, this is an expensive query and should not be done in list endpoints"
   object: KubernetesUnstructured
 
@@ -1517,12 +1592,21 @@ type ConstraintRef {
 "A summary of statistics for violations w\/in a specific column"
 type ViolationStatistic {
   "the value of this field being aggregated"
-  value: String!
+  value: String
 
   "the total number of violations found"
   violations: Int
 
   "the total number of policy constraints"
+  count: Int
+}
+
+"Aggregate statistics for policies across your fleet"
+type PolicyStatistic {
+  "the field you're computing this statistic on"
+  aggregate: String
+
+  "the count for this aggregate"
   count: Int
 }
 
@@ -2292,6 +2376,8 @@ input HelmConfigAttributes {
 
   release: String
 
+  url: String
+
   set: HelmValueAttributes
 
   repository: NamespacedName
@@ -2355,6 +2441,7 @@ input ServiceCloneAttributes {
 input GitRefAttributes {
   ref: String!
   folder: String!
+  files: [String!]
 }
 
 input ConfigAttributes {
@@ -2553,6 +2640,9 @@ type GitRef {
 
   "the folder manifests live under"
   folder: String!
+
+  "a list of individual files to include as well"
+  files: [String!]
 }
 
 type ObjectReference {
@@ -2563,6 +2653,9 @@ type ObjectReference {
 type HelmSpec {
   "the name of the chart this service is using"
   chart: String
+
+  "the helm repository url to use"
+  url: String
 
   "a helm values file to use with this service, requires auth and so is heavy to query"
   values: String
@@ -3710,6 +3803,17 @@ input PullRequestAttributes {
   cluster: NamespacedName
 }
 
+"attributes for a pull request pointer record"
+input PullRequestUpdateAttributes {
+  title: String!
+  labels: [String]
+  status: PrStatus!
+  serviceId: ID
+  clusterId: ID
+  service: NamespacedName
+  cluster: NamespacedName
+}
+
 "The attributes to configure a new webhook for a SCM provider"
 input ScmWebhookAttributes {
   "the secret token for authenticating this webhook via hmac signature"
@@ -4502,6 +4606,9 @@ type ResourceSpec {
 }
 
 type KubernetesUnstructured {
+  group: String
+  version: String!
+  kind: String!
   raw: Map
   metadata: Metadata!
   events: [Event]
@@ -5298,6 +5405,9 @@ input PersonaConfigurationAttributes {
   "enable full ui for this persona"
   all: Boolean
 
+  "configuration for the homepage for the given persona"
+  home: PersonaHomeAttributes
+
   "enable individual parts of the deployments views"
   deployments: PersonaDeploymentAttributes
 
@@ -5322,6 +5432,11 @@ input PersonaSidebarAttributes {
   settings: Boolean
   backups: Boolean
   stacks: Boolean
+}
+
+input PersonaHomeAttributes {
+  manager: Boolean
+  security: Boolean
 }
 
 type User {
@@ -5475,6 +5590,9 @@ type PersonaConfiguration {
   "enable full ui for this persona"
   all: Boolean
 
+  "settings for the home page for this persona"
+  home: PersonaHome
+
   "enable individual parts of the deployments views"
   deployments: PersonaDeployment
 
@@ -5499,6 +5617,11 @@ type PersonaSidebar {
   settings: Boolean
   backups: Boolean
   stacks: Boolean
+}
+
+type PersonaHome {
+  manager: Boolean
+  security: Boolean
 }
 
 type UserConnection {

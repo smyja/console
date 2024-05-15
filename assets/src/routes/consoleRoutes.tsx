@@ -30,6 +30,8 @@ import Apps from 'components/apps/Apps'
 
 import { Personas } from 'components/account/personas/Personas'
 
+import Home from 'components/home/Home'
+
 import { clusterRoutes } from './clusterRoutes'
 import { appsRoutes } from './appsRoutes'
 import { cdRoutes } from './cdRoutes'
@@ -37,6 +39,7 @@ import { prRoutes } from './prRoutes'
 import { notificationsRoutes } from './notificationsRoutes'
 import { backupsRoutes } from './backupRoutes'
 import { kubernetesRoute } from './kubernetesRoute'
+import { policiesRoutes } from './policiesRoutes'
 
 const buildsRoutes = [
   <Route
@@ -212,6 +215,9 @@ export const consoleComponentRoutes = [
   /* INCIDENTS */
   // ...incidentsRoutes,
 
+  /* POLICIES */
+  ...policiesRoutes,
+
   /* BUILDS */
   ...buildsRoutes,
 
@@ -238,12 +244,18 @@ export const consoleRoutes: RouteObject[] = [
   // ----- Old-style component-based routes -----
   {
     path: '*',
-    Component: () => <Routes>{consoleComponentRoutes}</Routes>,
+    element: <Routes>{consoleComponentRoutes}</Routes>,
   },
 
   // ----- New object-based routes -----
   // Index
-  { index: true, Component: Apps },
+  { index: true, element: <Apps /> },
+
+  // HOME
+  {
+    path: 'home',
+    element: <Home />,
+  },
 
   // PR QUEUE
   ...prRoutes,

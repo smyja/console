@@ -109,7 +109,16 @@ defmodule Console.Deployments.Services do
     Git.get_repository!(id)
     |> Git.Discovery.fetch(git)
   end
-  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v}} = svc) when is_binary(c) and is_binary(v) do
+
+  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v, url: url}} = svc)
+    when is_binary(c) and is_binary(v) and is_binary(url) do
+    with {:ok, f, sha} <- Helm.Discovery.fetch(url, c, v),
+         {:ok, _} <- update_sha_without_revision(svc, sha),
+      do: {:ok, f}
+  end
+
+  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v}} = svc)
+    when is_binary(c) and is_binary(v) do
     with {:ok, f, sha} <- Helm.Charts.artifact(svc),
          {:ok, _} <- update_sha_without_revision(svc, sha),
       do: {:ok, f}
@@ -309,6 +318,7 @@ defmodule Console.Deployments.Services do
       |> Console.dedupe(:helm, Console.mapify(source.helm))
       |> Console.dedupe(:kustomize, Console.mapify(source.kustomize))
       |> Console.dedupe(:dependencies, Enum.map(source.dependencies, & %{name: &1.name}))
+      |> Console.dedupe(:sync_config, Console.clean(source.sync_config))
       |> Map.merge(attrs)
       |> Map.put(:configuration, config)
       |> create_service(cluster_id, user)
