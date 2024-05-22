@@ -79,7 +79,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req reconcile.Request
 		return ctrl.Result{}, fmt.Errorf("could not check if cluster is existing resource, got error: %+v", err)
 	}
 	if exists {
-		logger.V(9).Info("Cluster already exists in the API, running in read-only mode")
+		logger.V(9).Info("Cluster is in BYOK mode, running in read-only mode")
 		utils.MarkCondition(cluster.SetCondition, v1alpha1.ReadonlyConditionType, v1.ConditionTrue, v1alpha1.ReadonlyConditionReason, v1alpha1.ReadonlyTrueConditionMessage.String())
 		return r.handleExisting(cluster)
 	}
@@ -89,7 +89,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	// Get Provider ID from the reference if it is set and ensure that controller reference is set properly.
 	providerId, result, err := r.getProviderIdAndSetControllerRef(ctx, cluster)
-	if result != nil {
+	if result != nil || err != nil {
 		utils.MarkCondition(cluster.SetCondition, v1alpha1.SynchronizedConditionType, v1.ConditionFalse, v1alpha1.SynchronizedConditionReasonError, "")
 		return *result, err
 	}
@@ -135,6 +135,9 @@ func (r *ClusterReconciler) isExisting(cluster *v1alpha1.Cluster) (bool, error) 
 
 	_, err := r.ConsoleClient.GetClusterByHandle(cluster.Spec.Handle)
 	if errors.IsNotFound(err) {
+		if cluster.Spec.ProviderRef == nil {
+			return true, nil
+		}
 		return false, nil
 	}
 	if err != nil {
@@ -191,13 +194,23 @@ func (r *ClusterReconciler) addOrRemoveFinalizer(cluster *v1alpha1.Cluster) *ctr
 
 	// If object is being deleted cleanup and remove the finalizer.
 	if !cluster.ObjectMeta.DeletionTimestamp.IsZero() {
+		if cluster.Status.ID == nil {
+			controllerutil.RemoveFinalizer(cluster, ClusterFinalizer)
+			return &ctrl.Result{}
+		}
+
 		// If object is already being deleted from Console API requeue.
 		if r.ConsoleClient.IsClusterDeleting(cluster.Status.ID) {
 			return &requeue
 		}
 
+		exists, err := r.ConsoleClient.IsClusterExisting(cluster.Status.ID)
+		if err != nil {
+			return &requeue
+		}
+
 		// Remove Cluster from Console API if it exists and is not read-only.
-		if r.ConsoleClient.IsClusterExisting(cluster.Status.ID) && !cluster.Status.IsReadonly() {
+		if exists && !cluster.Status.IsReadonly() {
 			if _, err := r.ConsoleClient.DeleteCluster(*cluster.Status.ID); err != nil {
 				// If it fails to delete the external dependency here, return with error
 				// so that it can be retried.
@@ -262,8 +275,11 @@ func (r *ClusterReconciler) getProviderIdAndSetControllerRef(ctx context.Context
 }
 
 func (r *ClusterReconciler) sync(ctx context.Context, cluster *v1alpha1.Cluster, providerId *string, sha string) (*console.ClusterFragment, error) {
-	exists := r.ConsoleClient.IsClusterExisting(cluster.Status.ID)
 	logger := log.FromContext(ctx)
+	exists, err := r.ConsoleClient.IsClusterExisting(cluster.Status.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	if !cluster.Status.IsSHAEqual(sha) && exists {
 		logger.Info(fmt.Sprintf("Detected changes, updating %s cluster", cluster.Name))

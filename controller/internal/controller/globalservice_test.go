@@ -97,13 +97,20 @@ var _ = Describe("Global Service Controller", Ordered, func() {
 				ObjectMeta: metav1.ObjectMeta{Name: serviceName, Namespace: namespace},
 				Spec: v1alpha1.GlobalServiceSpec{
 					Distro: lo.ToPtr(gqlclient.ClusterDistroGeneric),
-					ServiceRef: corev1.ObjectReference{
+					ServiceRef: &corev1.ObjectReference{
 						Name:      serviceName,
 						Namespace: namespace,
 					},
 					ProviderRef: &corev1.ObjectReference{
 						Name:      providerName,
 						Namespace: namespace,
+					},
+					Template: &v1alpha1.ServiceTemplate{
+						SyncConfig: &v1alpha1.SyncConfigAttributes{
+							CreateNamespace: lo.ToPtr(false),
+							Labels:          map[string]string{"a": "a"},
+							Annotations:     map[string]string{"b": "b"},
+						},
 					},
 				},
 			}, nil)).To(Succeed())
@@ -133,7 +140,7 @@ var _ = Describe("Global Service Controller", Ordered, func() {
 			}{
 				expectedStatus: v1alpha1.Status{
 					ID:  lo.ToPtr("123"),
-					SHA: lo.ToPtr("WAXTBLTM6PFWW6BBRLCPV2ILX2J4EOHQKDISWH4QAM5IODNRMBJQ===="),
+					SHA: lo.ToPtr("UGRGWOH2SGNMBJCLILLWETDKRMFIDDZ4NAVFMY7MW76QTW7QDTYQ===="),
 					Conditions: []metav1.Condition{
 						{
 							Type:   v1alpha1.SynchronizedConditionType.String(),
@@ -208,6 +215,68 @@ var _ = Describe("Global Service Controller", Ordered, func() {
 			err = k8sClient.Get(ctx, typeNamespacedName, service)
 
 			Expect(err.Error()).To(Equal("globalservices.deployments.plural.sh \"service-test\" not found"))
+		})
+		It("should successfully reconcile the resource", func() {
+			By("Create from template")
+			test := struct {
+				returnCreateService *gqlclient.GlobalServiceFragment
+				expectedStatus      v1alpha1.Status
+			}{
+				returnCreateService: &gqlclient.GlobalServiceFragment{
+					ID: "123",
+				},
+				expectedStatus: v1alpha1.Status{
+					ID:  lo.ToPtr("123"),
+					SHA: lo.ToPtr("UGRGWOH2SGNMBJCLILLWETDKRMFIDDZ4NAVFMY7MW76QTW7QDTYQ===="),
+					Conditions: []metav1.Condition{
+						{
+							Type:   v1alpha1.SynchronizedConditionType.String(),
+							Status: metav1.ConditionTrue,
+							Reason: v1alpha1.SynchronizedConditionReason.String(),
+						},
+					},
+				},
+			}
+
+			Expect(common.MaybeCreate(k8sClient, &v1alpha1.GlobalService{
+				ObjectMeta: metav1.ObjectMeta{Name: serviceName, Namespace: namespace},
+				Spec: v1alpha1.GlobalServiceSpec{
+					Distro: lo.ToPtr(gqlclient.ClusterDistroGeneric),
+					Template: &v1alpha1.ServiceTemplate{
+						SyncConfig: &v1alpha1.SyncConfigAttributes{
+							CreateNamespace: lo.ToPtr(false),
+							Labels:          map[string]string{"a": "a"},
+							Annotations:     map[string]string{"b": "b"},
+						},
+						RepositoryRef: &corev1.ObjectReference{
+							Name:      repoName,
+							Namespace: namespace,
+						},
+						Git: &v1alpha1.GitRef{
+							Ref:    "main",
+							Folder: "test",
+						},
+					},
+				},
+			}, nil)).To(Succeed())
+
+			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
+			fakeConsoleClient.On("CreateGlobalServiceFromTemplate", mock.Anything, mock.Anything).Return(test.returnCreateService, nil)
+			serviceReconciler := &controller.GlobalServiceReconciler{
+				Client:        k8sClient,
+				Scheme:        k8sClient.Scheme(),
+				ConsoleClient: fakeConsoleClient,
+			}
+
+			_, err := serviceReconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: typeNamespacedName,
+			})
+
+			Expect(err).NotTo(HaveOccurred())
+
+			service := &v1alpha1.GlobalService{}
+			err = k8sClient.Get(ctx, typeNamespacedName, service)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 

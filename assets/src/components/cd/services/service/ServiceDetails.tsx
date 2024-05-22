@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { memo, useContext, useMemo } from 'react'
 import {
   Outlet,
   useLocation,
@@ -35,12 +35,16 @@ import {
   SERVICE_PARAM_ID,
   getServiceDetailsPath,
 } from 'routes/cdRoutesConsts'
-import ComponentProgress from 'components/apps/app/components/ComponentProgress'
+
 import { Directory, SideNavEntries } from 'components/layout/SideNavEntries'
 import { getClusterBreadcrumbs } from 'components/cd/cluster/Cluster'
 import { POLL_INTERVAL } from 'components/cluster/constants'
 
 import { useLogsEnabled } from 'components/contexts/DeploymentSettingsContext'
+
+import { LoginContext } from 'components/contexts'
+
+import FractionalChip from 'components/utils/FractionalChip'
 
 import ServiceSelector from '../ServiceSelector'
 
@@ -95,20 +99,32 @@ export const getDirectory = ({
   serviceDeployment,
   docs = null,
   logsEnabled = false,
+  isAdmin = false,
 }: {
   serviceDeployment?: ServiceDeploymentDetailsFragment | null | undefined
   docs?: ReturnType<typeof getDocsData> | null
   logsEnabled?: boolean | undefined
+  isAdmin?: boolean
 }): Directory => {
   if (!serviceDeployment) {
     return []
   }
-  const { name, componentStatus, helm, dryRun } = serviceDeployment
+  const { name, componentStatus, dryRun } = serviceDeployment
+
+  const healthyDependencies =
+    serviceDeployment.dependencies?.filter((dep) => dep?.status === 'HEALTHY')
+      .length || 0
+  const totalDependencies = serviceDeployment.dependencies?.length || 0
 
   return [
     {
       path: 'components',
-      label: <ComponentProgress componentsReady={componentStatus} />,
+      label: (
+        <FractionalChip
+          label="Components"
+          fraction={componentStatus}
+        />
+      ),
       enabled: true,
     },
     {
@@ -119,7 +135,7 @@ export const getDirectory = ({
     { path: 'settings', label: 'Settings', enabled: true },
     { path: 'logs', label: 'Logs', enabled: logsEnabled },
     { path: 'secrets', label: 'Secrets', enabled: true },
-    { path: 'helm', label: 'Helm values', enabled: !!helm },
+    { path: 'helm', label: 'Helm values', enabled: isAdmin },
     { path: 'dryrun', label: 'Dry run', enabled: !!dryRun },
     { path: 'revisions', label: 'Revisions', enabled: true },
     {
@@ -128,12 +144,24 @@ export const getDirectory = ({
       enabled: !isEmpty(docs),
       ...(docs ? { subpaths: docs } : {}),
     },
+    {
+      path: 'dependencies',
+      label: (
+        <FractionalChip
+          label="Dependencies"
+          fraction={`${healthyDependencies}/${totalDependencies}`}
+        />
+      ),
+      enabled: !isEmpty(serviceDeployment.dependencies),
+    },
   ]
 }
 
 function ServiceDetailsBase() {
   const theme = useTheme()
   const { pathname } = useLocation()
+  const { me } = useContext<any>(LoginContext)
+  const isAdmin = !!me.roles?.admin
   const params = useParams()
   const serviceId = params[SERVICE_PARAM_ID] as string
   const clusterId = params[SERVICE_PARAM_CLUSTER_ID] as string
@@ -145,6 +173,7 @@ function ServiceDetailsBase() {
   const logsEnabled = useLogsEnabled()
 
   const { data: serviceListData } = useServiceDeploymentsTinyQuery({
+    variables: { clusterId },
     pollInterval: POLL_INTERVAL,
     fetchPolicy: 'cache-and-network',
   })
@@ -170,8 +199,9 @@ function ServiceDetailsBase() {
         serviceDeployment,
         docs,
         logsEnabled,
+        isAdmin,
       }),
-    [docs, logsEnabled, serviceDeployment]
+    [docs, logsEnabled, serviceDeployment, isAdmin]
   )
 
   return (

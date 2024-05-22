@@ -1,6 +1,6 @@
 defmodule Console.Deployments.Cron do
   use Console.Services.Base
-  alias Console.Deployments.{Services, Clusters, Global}
+  alias Console.Deployments.{Services, Clusters, Global, Stacks}
   alias Console.Services.Users
   alias Console.Schema.{
     Cluster,
@@ -10,7 +10,11 @@ defmodule Console.Deployments.Cron do
     PipelineStage,
     PipelinePromotion,
     AgentMigration,
-    ManagedNamespace
+    ManagedNamespace,
+    Stack,
+    StackRun,
+    PullRequest,
+    RunLog
   }
   alias Console.Deployments.Pipelines.Discovery
 
@@ -96,6 +100,17 @@ defmodule Console.Deployments.Cron do
     |> Stream.each(fn svc ->
       Logger.info "pruning revisions for #{svc.id}"
       Services.prune_revisions(svc)
+    end)
+    |> Stream.run()
+  end
+
+  def update_upgrade_plans() do
+    Cluster.installed()
+    |> Cluster.stream()
+    |> Repo.stream(method: :keyset)
+    |> Stream.each(fn cluster ->
+      Logger.info "compiling upgrade plan for #{cluster.handle}"
+      Clusters.update_upgrade_plan(cluster)
     end)
     |> Stream.run()
   end
@@ -204,4 +219,53 @@ defmodule Console.Deployments.Cron do
     end)
     |> Stream.run()
   end
+
+  def poll_stacks() do
+    Stream.each(stack_stream(), fn stack ->
+      Logger.info "polling repository for stack #{stack.id}"
+      Stacks.poll(stack)
+      |> log("poll stack for a new run")
+    end)
+    |> Stream.run()
+  end
+
+  def dequeue_stacks() do
+    Stream.each(stack_stream(), fn stack ->
+      Logger.info "dequeuing eligible stack runs #{stack.id}"
+      Stacks.dequeue(stack)
+      |> log("dequeue a new stack run")
+    end)
+    |> Stream.run()
+  end
+
+  def prune_logs() do
+    Logger.info "deleting old run logs"
+    RunLog.expired()
+    |> Repo.delete_all()
+  end
+
+  defp stack_stream() do
+    Stack.stream()
+    |> Stack.unpaused()
+    |> Repo.stream(method: :keyset)
+    |> Stream.concat(
+      PullRequest.stack()
+      |> PullRequest.stream()
+      |> Repo.stream(method: :keyset)
+    )
+  end
+
+  def place_run_workers() do
+    StackRun.running()
+    |> Repo.stream(method: :keyset)
+    |> Stream.each(fn run ->
+      Logger.info "ensuring run worker #{run.id} is placed"
+      Stacks.Discovery.runner(run)
+    end)
+    |> Stream.run()
+  end
+
+  defp log({:ok, %{id: id}}, msg), do: "Successfully #{msg} for #{id}"
+  defp log({:error, error}, msg), do: "Failed to #{msg} with error: #{inspect(error)}"
+  defp log(_, _), do: :ok
 end

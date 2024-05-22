@@ -4,6 +4,7 @@ defmodule Console.Services.Base do
   defmacro __using__(_) do
     quote do
       import Console.Services.Base
+      import Console, only: [coalesce: 2]
       alias Console.Repo
     end
   end
@@ -91,5 +92,13 @@ defmodule Console.Services.Base do
     map
     |> Map.put(:inserted_at, DateTime.utc_now())
     |> Map.put(:updated_at, DateTime.utc_now())
+  end
+
+  def add_binding(bindings, key, value) do
+    case Enum.find(bindings, &Map.get(&1, key) == value) do
+      nil -> [%{key => value} | bindings]
+      _ -> bindings
+    end
+    |> Console.mapify()
   end
 end

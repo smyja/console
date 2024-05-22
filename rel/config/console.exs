@@ -88,6 +88,7 @@ config :console,
   git_user_name: get_env("GIT_USER", "plural"),
   git_user_email: get_env("GIT_EMAIL", "console@plural.sh"),
   url: add_https.(get_env("HOST")),
+  hostname: get_env("HOST"),
   ext_url: add_https.(get_env("EXT_HOST") || get_env("HOST")),
   webhook_url: add_https.(get_env("WEBHOOK_HOST") || get_env("EXT_HOST") || get_env("HOST")),
   cluster_name: get_env("CLUSTER_NAME"),
@@ -97,7 +98,8 @@ config :console,
   build_id: get_env("CONSOLE_BUILD_ID"),
   kas_dns: get_env("KAS_DNS"),
   byok: get_env("CONSOLE_BYOK") == "true",
-  airgap: get_env("CONSOLE_AIRGAP") == "true"
+  airgap: get_env("CONSOLE_AIRGAP") == "true",
+  oidc_name: get_env("CONSOLE_OIDC_LOGIN_NAME")
 
 if git_url && String.starts_with?(git_url, "https") do
   config :console,

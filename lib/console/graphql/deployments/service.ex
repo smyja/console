@@ -22,6 +22,7 @@ defmodule Console.GraphQl.Deployments.Service do
     field :helm,             :helm_config_attributes
     field :kustomize,        :kustomize_attributes
     field :configuration,    list_of(:config_attributes)
+    field :dependencies,     list_of(:service_dependency_attributes)
     field :read_bindings,    list_of(:policy_binding_attributes)
     field :write_bindings,   list_of(:policy_binding_attributes)
     field :context_bindings, list_of(:context_binding_attributes)
@@ -33,12 +34,16 @@ defmodule Console.GraphQl.Deployments.Service do
   end
 
   input_object :helm_config_attributes do
-    field :values,       :string
-    field :values_files, list_of(:string)
-    field :chart,        :string
-    field :version,      :string
-    field :set,          :helm_value_attributes
-    field :repository,   :namespaced_name
+    field :values,        :string
+    field :values_files,  list_of(:string)
+    field :chart,         :string
+    field :version,       :string
+    field :release,       :string
+    field :url,           :string
+    field :set,           :helm_value_attributes
+    field :repository,    :namespaced_name
+    field :git,           :git_ref_attributes
+    field :repository_id, :id, description: "pointer to a Plural GitRepository"
   end
 
   input_object :metadata_attributes do
@@ -56,11 +61,13 @@ defmodule Console.GraphQl.Deployments.Service do
     field :protect,          :boolean
     field :dry_run,          :boolean
     field :interval,         :string
+    field :sync_config,      :sync_config_attributes
     field :templated,        :boolean, description: "if you should apply liquid templating to raw yaml files, defaults to true"
     field :git,              :git_ref_attributes
     field :helm,             :helm_config_attributes
     field :configuration,    list_of(:config_attributes)
     field :kustomize,        :kustomize_attributes
+    field :dependencies,     list_of(:service_dependency_attributes)
     field :read_bindings,    list_of(:policy_binding_attributes)
     field :write_bindings,   list_of(:policy_binding_attributes)
     field :context_bindings, list_of(:context_binding_attributes)
@@ -75,6 +82,7 @@ defmodule Console.GraphQl.Deployments.Service do
   input_object :git_ref_attributes do
     field :ref,    non_null(:string)
     field :folder, non_null(:string)
+    field :files,  list_of(non_null(:string))
   end
 
   input_object :config_attributes do
@@ -113,6 +121,11 @@ defmodule Console.GraphQl.Deployments.Service do
   @desc "a binding from a service to a service context"
   input_object :context_binding_attributes do
     field :context_id, non_null(:string)
+  end
+
+  @desc "A named depedency of a service, will prevent applying any manifests until the dependency has become ready"
+  input_object :service_dependency_attributes do
+    field :name, non_null(:string)
   end
 
   input_object :kustomize_attributes do
@@ -176,6 +189,7 @@ defmodule Console.GraphQl.Deployments.Service do
     field :global_service, :global_service, resolve: dataloader(Deployments), description: "the global service this service is the source for"
     field :owner,          :global_service, resolve: dataloader(Deployments), description: "whether this service is controlled by a global service"
     field :contexts,       list_of(:service_context), resolve: dataloader(Deployments), description: "bound contexts for this service"
+    field :dependencies,   list_of(:service_dependency), resolve: dataloader(Deployments), description: "the dependencies of this service, actualization will not happen until all are HEALTHY"
 
     @desc "a relay connection of all revisions of this service, these are periodically pruned up to a history limit"
     connection field :revisions, node_type: :revision do
@@ -203,6 +217,7 @@ defmodule Console.GraphQl.Deployments.Service do
   object :git_ref do
     field :ref,    non_null(:string), description: "a general git ref, either a branch name or commit sha understandable by `git checkout <ref>`"
     field :folder, non_null(:string), description: "the folder manifests live under"
+    field :files,  list_of(non_null(:string)), description: "a list of individual files to include as well"
   end
 
   object :object_reference do
@@ -211,14 +226,18 @@ defmodule Console.GraphQl.Deployments.Service do
   end
 
   object :helm_spec do
-    field :chart,        :string, description: "the name of the chart this service is using"
-    field :values,       :string,
+    field :chart,         :string, description: "the name of the chart this service is using"
+    field :url,           :string, description: "the helm repository url to use"
+    field :values,        :string,
       description: "a helm values file to use with this service, requires auth and so is heavy to query",
       resolve: &Deployments.helm_values/3
-    field :repository,   :object_reference, description: "pointer to the flux helm repository resource used for this chart"
-    field :version,      :string, description: "the chart version in use currently"
-    field :set,          list_of(:helm_value), description: "a list of helm name/value pairs to precisely set individual values"
-    field :values_files, list_of(:string), description: "a list of relative paths to values files to use for helm applies"
+    field :release,       :string
+    field :git,           :git_ref, description: "spec of where to find the chart in git"
+    field :repository_id, :id, description: "a git repository in Plural to use as a source"
+    field :repository,    :object_reference, description: "pointer to the flux helm repository resource used for this chart"
+    field :version,       :string, description: "the chart version in use currently"
+    field :set,           list_of(:helm_value), description: "a list of helm name/value pairs to precisely set individual values"
+    field :values_files,  list_of(:string), description: "a list of relative paths to values files to use for helm applies"
   end
 
   @desc "a configuration item k/v pair"
@@ -314,6 +333,15 @@ defmodule Console.GraphQl.Deployments.Service do
     timestamps()
   end
 
+  @desc "A dependency of a service, the service will not actualize until all dependencies are ready"
+  object :service_dependency do
+    field :id,     non_null(:id)
+    field :status, :service_deployment_status
+    field :name,   non_null(:string)
+
+    timestamps()
+  end
+
   @desc "A tree view of the kubernetes object hierarchy beneath a component"
   object :component_tree do
     field :root,         :kubernetes_unstructured
@@ -394,6 +422,7 @@ defmodule Console.GraphQl.Deployments.Service do
       arg :cluster_id, :id
       arg :q,          :string
       arg :status,     :service_deployment_status
+      arg :errored,    :boolean
       arg :cluster,    :string, description: "the handle of the cluster for this service"
 
       safe_resolve &Deployments.list_services/2

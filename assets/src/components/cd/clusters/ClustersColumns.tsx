@@ -7,19 +7,13 @@ import {
   Tooltip,
   TrashCanIcon,
 } from '@pluralsh/design-system'
-import { isEmpty } from 'lodash'
 import { Link } from 'react-router-dom'
 import styled, { useTheme } from 'styled-components'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { Cluster, ClustersRowFragment } from 'generated/graphql'
 
-import {
-  canUpgrade,
-  isUpgrading,
-  nextSupportedVersion,
-  toNiceVersion,
-} from 'utils/semver'
+import { isUpgrading, toNiceVersion } from 'utils/semver'
 import { Edge } from 'utils/graphql'
 import {
   cpuFormat,
@@ -106,7 +100,7 @@ export function ColClusterContent({
   )
 }
 
-const ColCluster = columnHelper.accessor(({ node }) => node?.name, {
+export const ColCluster = columnHelper.accessor(({ node }) => node?.name, {
   id: 'cluster',
   header: 'Cluster',
   cell: function Cell({ row: { original } }) {
@@ -114,7 +108,7 @@ const ColCluster = columnHelper.accessor(({ node }) => node?.name, {
   },
 })
 
-const ColProvider = columnHelper.accessor(
+export const ColProvider = columnHelper.accessor(
   ({ node }) =>
     `${getClusterDistroName(node?.distro, 'short')} – ${getProviderName(
       node?.provider?.cloud
@@ -145,13 +139,13 @@ const ColProvider = columnHelper.accessor(
   }
 )
 
-const ColHealth = columnHelper.accessor(({ node }) => node, {
+export const ColHealth = columnHelper.accessor(({ node }) => node, {
   id: 'health',
   header: 'Health',
   cell: ({ getValue }) => <ClusterHealth cluster={getValue() || undefined} />,
 })
 
-const ColVersion = columnHelper.accessor(({ node }) => node, {
+export const ColVersion = columnHelper.accessor(({ node }) => node, {
   id: 'version',
   header: 'Deployed version',
   cell: function Cell({
@@ -183,7 +177,7 @@ const ColVersion = columnHelper.accessor(({ node }) => node, {
   },
 })
 
-const ColCpu = columnHelper.accessor(({ node }) => node, {
+export const ColCpu = columnHelper.accessor(({ node }) => node, {
   id: 'cpu',
   header: 'CPU',
   cell: ({ getValue }) => {
@@ -220,7 +214,7 @@ const ColCpu = columnHelper.accessor(({ node }) => node, {
   },
 })
 
-const ColMemory = columnHelper.accessor(({ node }) => node, {
+export const ColMemory = columnHelper.accessor(({ node }) => node, {
   id: 'memory',
   header: 'Memory',
   cell: ({ getValue }) => {
@@ -262,25 +256,13 @@ const ColStatusSC = styled.div(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing.small,
 }))
-const ColStatus = columnHelper.accessor(({ node }) => node, {
+
+export const ColStatus = columnHelper.accessor(({ node }) => node, {
   id: 'status',
   header: 'Status',
   cell: ({ table, getValue, row: { original } }) => {
     const cluster = getValue()
-    const hasDeprecations = !isEmpty(cluster?.apiDeprecations)
-    const upgrade = nextSupportedVersion(
-      cluster?.version,
-      cluster?.provider?.supportedVersions
-    )
     const { refetch } = table.options.meta as { refetch?: () => void }
-
-    if (
-      !upgrade &&
-      !hasDeprecations &&
-      !(!cluster?.provider && canUpgrade(cluster?.currentVersion ?? '0.0.0'))
-    ) {
-      return null
-    }
 
     return (
       <ColStatusSC
@@ -321,7 +303,7 @@ const ColConditions = columnHelper.accessor(
 )
 */
 
-const ColActions = columnHelper.accessor(({ node }) => node, {
+export const ColActions = columnHelper.accessor(({ node }) => node, {
   id: 'actions',
   header: '',
   cell: function Cell({ table, getValue }) {
@@ -333,7 +315,7 @@ const ColActions = columnHelper.accessor(({ node }) => node, {
     if (!cluster) {
       return null
     }
-    const protect = cluster.protect || cluster.self || !!cluster.deletedAt
+    const protect = cluster.protect || cluster.self
 
     return (
       <div
@@ -363,7 +345,7 @@ const ColActions = columnHelper.accessor(({ node }) => node, {
               textValue="Detach cluster"
             />
           )}
-          {!protect && (
+          {!protect && !cluster.deletedAt && (
             <ListBoxItem
               key={MenuItemKey.Delete}
               leftContent={
@@ -402,7 +384,7 @@ const ColActions = columnHelper.accessor(({ node }) => node, {
   },
 })
 
-export const columns = [
+export const cdClustersColumns = [
   ColCluster,
   ColProvider,
   ColHealth,

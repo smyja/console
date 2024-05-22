@@ -14,7 +14,7 @@ COPY assets/ ./
 
 RUN yarn run build
 
-FROM bitwalker/alpine-elixir:1.12.3 AS builder
+FROM bitwalker/alpine-elixir:1.13.4 AS builder
 
 # The following are build arguments used to change variable parts of the image.
 # The name of your application/release (required)
@@ -70,7 +70,7 @@ ENV HELM_VERSION=v3.10.3
 ENV TERRAFORM_VERSION=v1.2.9
 
 # renovate: datasource=github-releases depName=pluralsh/plural-cli
-ENV CLI_VERSION=v0.8.6
+ENV CLI_VERSION=v0.9.4
 
 # renovate: datasource=github-tags depName=kubernetes/kubernetes
 ENV KUBECTL_VERSION=v1.25.5

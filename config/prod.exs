@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :console, :initialize, true
 
@@ -23,6 +23,7 @@ config :console, :consumers, [
 ]
 
 config :console, Console.Cron,
+  # overlap: false,
   jobs: [
     {"@daily", {Console.Cron.Jobs, :prune_builds, []}},
     {"@daily", {Console.Cron.Jobs, :prune_invites, []}},
@@ -31,6 +32,9 @@ config :console, Console.Cron,
     {"*/5 * * * *", {Console.Deployments.Cron, :prune_clusters, []}},
     {"*/5 * * * *", {Console.Deployments.Cron, :prune_services, []}},
     {"*/5 * * * *", {Console.Deployments.Cron, :install_clusters, []}},
+    {"*/10 * * * *", {Console.Deployments.Cron, :poll_stacks, []}},
+    {"*/10 * * * *", {Console.Deployments.Cron, :dequeue_stacks, []}},
+    {"*/10 * * * *", {Console.Deployments.Cron, :place_run_workers, []}},
     {"*/2 * * * *", {Console.Deployments.Cron, :scan_pipeline_stages, []}},
     {"*/2 * * * *", {Console.Deployments.Cron, :scan_pending_promotions, []}},
     {"*/2 * * * *", {Console.Deployments.Cron, :scan_pending_contexts, []}},
@@ -41,9 +45,11 @@ config :console, Console.Cron,
     {"35 * * * *", {Console.Deployments.Cron, :drain_managed_namespaces, []}},
     {"45 * * * *", {Console.Deployments.Cron, :migrate_kas, []}},
     {"30 * * * *", {Console.Deployments.Cron, :migrate_agents, []}},
+    {"15 * * * *", {Console.Deployments.Cron, :update_upgrade_plans, []}},
     {"@daily", {Console.Deployments.Cron, :rotate_deploy_tokens, []}},
     {"@daily", {Console.Deployments.Cron, :prune_revisions, []}},
     {"@daily", {Console.Deployments.Cron, :prune_migrations, []}},
+    {"@daily", {Console.Deployments.Cron, :prune_logs, []}},
     {"@daily", {Console.Cron.Jobs, :prune_notifications, []}},
     {"@daily", {Console.Cron.Jobs, :prune_audits, []}},
   ]

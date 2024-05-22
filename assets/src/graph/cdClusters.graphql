@@ -118,9 +118,6 @@ fragment AddonVersionBlocking on AddonVersion {
 }
 
 fragment ClustersRow on Cluster {
-  apiDeprecations {
-    ...ApiDeprecation
-  }
   currentVersion
   id
   self
@@ -170,6 +167,11 @@ fragment ClustersRow on Cluster {
     value
   }
   distro
+  upgradePlan {
+    compatibilities
+    deprecations
+    incompatibilities
+  }
 }
 
 fragment Cluster on Cluster {
@@ -181,6 +183,7 @@ fragment Cluster on Cluster {
   id
   name
   handle
+  metadata
   nodePools {
     ...NodePool
   }
@@ -254,6 +257,7 @@ query Clusters(
 fragment ClusterTiny on Cluster {
   id
   name
+  self
   provider {
     cloud
   }
@@ -263,7 +267,6 @@ fragment ClusterTiny on Cluster {
 fragment ClusterBasic on Cluster {
   ...ClusterTiny
   handle
-  self
   protect
   deletedAt
   version
@@ -374,6 +377,9 @@ query RuntimeServices(
     version
     runtimeServices {
       ...RuntimeService
+    }
+    apiDeprecations {
+      ...ApiDeprecation
     }
   }
 }

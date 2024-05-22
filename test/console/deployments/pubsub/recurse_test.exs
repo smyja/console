@@ -2,7 +2,8 @@ defmodule Console.Deployments.PubSub.RecurseTest do
   use Console.DataCase, async: true
   use Mimic
   alias Console.PubSub
-  alias Console.Deployments.{Clusters, Services, Global}
+  alias Console.Deployments.{Clusters, Services, Global, Stacks}
+  alias Console.Deployments.Git.Discovery
   alias Console.PubSub.Consumers.Recurse
 
   describe "ServiceComponentsUpdated" do
@@ -208,8 +209,10 @@ defmodule Console.Deployments.PubSub.RecurseTest do
       global  = insert(:global_service, provider: cluster.provider)
       global2 = insert(:global_service, tags: [%{name: "test", value: "tag"}])
       global3 = insert(:global_service)
-      ignore  = insert(:global_service, tags: [%{name: "ignore", value: "tag"}])
-      ignore1 = insert(:global_service, provider: insert(:cluster_provider))
+      ignore  = insert(:global_service, tags: [%{name: "ignore", value: "tag"}], cascade: %{detach: true})
+      ignore1 = insert(:global_service, provider: insert(:cluster_provider), cascade: %{delete: true})
+      svc  = insert(:service, owner: ignore1, cluster: cluster)
+      svc2 = insert(:service, owner: ignore, cluster: cluster)
 
       event = %PubSub.ClusterUpdated{item: cluster}
       :ok = Recurse.handle_event(event)
@@ -218,6 +221,9 @@ defmodule Console.Deployments.PubSub.RecurseTest do
         do: assert Services.get_service_by_name(cluster.id, gs.service.name)
       for gs <- [ignore, ignore1],
         do: refute Services.get_service_by_name(cluster.id, gs.service.name)
+
+      assert refetch(svc).deleted_at
+      refute refetch(svc2)
     end
 
     test "it will apply managed namespaces" do
@@ -316,8 +322,15 @@ defmodule Console.Deployments.PubSub.RecurseTest do
       event = %PubSub.ManagedNamespaceCreated{item: mns}
       :ok = Recurse.handle_event(event)
 
-      for c <- clusters,
-        do: assert Services.get_service_by_name(c.id, "#{mns.name}-core")
+      services = for c <- clusters do
+        svc = Services.get_service_by_name(c.id, "#{mns.name}-core")
+        assert svc
+        svc
+      end
+
+      instances = Console.Schema.Service.for_namespace(mns.id)
+                  |> Console.Repo.all()
+      assert ids_equal(services, instances)
 
       for c <- [ignore, ignore2],
         do: refute Services.get_service_by_name(c.id, "#{mns.name}-core")
@@ -343,13 +356,94 @@ defmodule Console.Deployments.PubSub.RecurseTest do
       ss = insert(:stage_service, service: svc, stage: dev)
       insert(:promotion_criteria, stage_service: ss, pr_automation: pra)
 
-      expect(Console.Deployments.Pr.Dispatcher, :create, fn _, _, %{"some" => "context"} -> {:ok, %{title: "some", url: "url"}} end)
-
+      expect(Console.Deployments.Pipelines.Discovery, :context, fn stage -> {:ok, stage} end)
       event = %PubSub.PipelineStageUpdated{item: dev}
-      {:ok, %{stg: stage}} = Recurse.handle_event(event)
+      {:ok, stage} = Recurse.handle_event(event)
 
-      assert stage.applied_context_id == ctx.id
-      assert Console.Repo.get_by(Console.Schema.PipelinePullRequest, context_id: ctx.id, service_id: svc.id)
+      assert stage.id == dev.id
+    end
+  end
+
+  describe "StackCreated" do
+    test "it will poll the stack" do
+      stack = insert(:stack, git: %{folder: "terraform", ref: "main"})
+      expect(Discovery, :sha, fn _, _ -> {:ok, "new-sha"} end)
+      expect(Discovery, :changes, fn _, _, _, _ -> {:ok, ["terraform/main.tf"], "a commit message"} end)
+
+      event = %PubSub.StackCreated{item: stack}
+      {:ok, run} = Recurse.handle_event(event)
+
+      assert run.stack_id == stack.id
+      assert run.status == :queued
+      assert run.cluster_id == stack.cluster_id
+      assert run.repository_id == stack.repository_id
+      assert run.git.ref == "new-sha"
+    end
+  end
+
+  describe "StackUpdated" do
+    test "it will poll the stack" do
+      stack = insert(:stack, git: %{folder: "terraform", ref: "main"})
+      expect(Discovery, :sha, fn _, _ -> {:ok, "new-sha"} end)
+      expect(Discovery, :changes, fn _, _, _, _ -> {:ok, ["terraform/main.tf"], "a commit message"} end)
+
+      event = %PubSub.StackUpdated{item: stack}
+      {:ok, run} = Recurse.handle_event(event)
+
+      assert run.stack_id == stack.id
+      assert run.status == :queued
+      assert run.cluster_id == stack.cluster_id
+      assert run.repository_id == stack.repository_id
+      assert run.git.ref == "new-sha"
+    end
+  end
+
+  describe "StackDeleted" do
+    test "it will create a delete run" do
+      stack = insert(:stack, deleted_at: Timex.now(), sha: "last-sha")
+
+      event = %PubSub.StackDeleted{item: stack}
+      {:ok, run} = Recurse.handle_event(event)
+
+      assert run.git.ref == "last-sha"
+      assert run.stack_id == stack.id
+
+      %{steps: steps} = Console.Repo.preload(run, [:steps])
+      %{"init" => init, "destroy" => destroy} = Map.new(steps, & {&1.name, &1})
+      assert init.cmd == "terraform"
+      assert init.args == ["init", "-upgrade"]
+
+      assert destroy.cmd == "terraform"
+      assert destroy.args == ["destroy", "-auto-approve"]
+
+      assert refetch(stack).delete_run_id == run.id
+    end
+  end
+
+  describe "StackRunCompleted" do
+    test "it can dequeue a stack run" do
+      stack = insert(:stack)
+      completed = insert(:stack_run, stack: stack, status: :successful)
+      :timer.sleep(1)
+      run = insert(:stack_run, stack: stack, status: :queued)
+
+      event = %PubSub.StackRunCompleted{item: completed}
+      {:ok, dequeued} = Recurse.handle_event(event)
+
+      assert dequeued.id == run.id
+      assert dequeued.status == :pending
+    end
+
+    test "it can delete a stack if it is in deleting stack" do
+      stack = insert(:stack, deleted_at: Timex.now(), sha: "last-sha")
+
+      {:ok, run} = Stacks.create_run(stack, stack.sha)
+
+      event = %PubSub.StackRunCompleted{item: %{run | status: :successful}}
+      {:ok, deleted} = Recurse.handle_event(event)
+
+      assert deleted.id == stack.id
+      refute refetch(stack)
     end
   end
 end

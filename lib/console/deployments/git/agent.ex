@@ -6,7 +6,7 @@ defmodule Console.Deployments.Git.Agent do
   We can then initiate a file stream out of this agent, which supports cross-node streams in case a repo tarball
   fetch is served on a separate node as this agent.
   """
-  use GenServer
+  use GenServer, restart: :transient
   import Console.Deployments.Git.Cmd
   alias Console.Prom.Metrics
   alias Console.Deployments.{Git.Cache, Git, Services}
@@ -29,6 +29,10 @@ defmodule Console.Deployments.Git.Agent do
   def refs(pid), do: GenServer.call(pid, :refs, 30_000)
 
   def addons(pid), do: GenServer.call(pid, :addons, 30_000)
+
+  def sha(pid, ref), do: GenServer.call(pid, {:sha, ref}, 30_000)
+
+  def changes(pid, sha1, sha2, folder), do: GenServer.call(pid, {:changes, sha1, sha2, folder}, 30_000)
 
   def kick(pid), do: send(pid, :pull)
 
@@ -77,16 +81,24 @@ defmodule Console.Deployments.Git.Agent do
   end
   def handle_call(:refs, _, state), do: {:reply, {:ok, []}, state}
 
-  def handle_call({:fetch, %Service.Git{ref: ref, folder: path}}, _, %State{cache: cache} = state) do
-    case Cache.fetch(cache, ref, path) do
+  def handle_call({:sha, ref}, _, %State{cache: cache} = state) do
+    {:reply, Cache.commit(cache, ref), state}
+  end
+
+  def handle_call({:changes, sha1, sha2, folder}, _, %State{cache: cache} = state) do
+    {:reply, Cache.changes(cache, sha1, sha2, folder), state}
+  end
+
+  def handle_call({:fetch, %Service.Git{} = ref}, _, %State{cache: cache} = state) do
+    case Cache.fetch(cache, ref) do
       {:ok, %Cache.Line{file: f}, cache} -> {:reply, File.open(f), %{state | cache: cache}}
       err -> {:reply, err, state}
     end
   end
 
-  def handle_call({:fetch, %Service{git: %{ref: ref, folder: path}} = svc}, _, %State{cache: cache} = state) do
+  def handle_call({:fetch, %Service{git: %Service.Git{} = ref} = svc}, _, %State{cache: cache} = state) do
     svc = Console.Repo.preload(svc, [:revision])
-    with {:ok, %Cache.Line{file: f, sha: sha, message: msg}, cache} <- Cache.fetch(cache, ref, path),
+    with {:ok, %Cache.Line{file: f, sha: sha, message: msg}, cache} <- Cache.fetch(cache, ref),
          {:ok, _} <- Services.update_sha(svc, sha, msg) do
       {:reply, File.open(f), %{state | cache: cache}}
     else

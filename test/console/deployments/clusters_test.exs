@@ -72,6 +72,40 @@ defmodule Console.Deployments.ClustersTest do
       assert length(revision.node_pools) == length(cluster.node_pools)
     end
 
+    test "it can create a new byok cluster record" do
+      user = admin_user()
+      git = insert(:git_repository, url: "https://github.com/pluralsh/deployment-operator.git")
+
+      {:ok, cluster} = Clusters.create_cluster(%{
+        name: "test",
+        write_bindings: [%{group_id: insert(:group).id}]
+      }, user)
+
+      assert cluster.name == "test"
+      assert cluster.deploy_token
+      assert cluster.token_readable
+
+      assert_receive {:event, %PubSub.ClusterCreated{item: ^cluster}}
+
+      %{write_bindings: [userb, group]} = Console.Repo.preload(cluster, [:write_bindings])
+
+      assert group.group_id
+      assert userb.user_id == user.id
+
+      [svc] = Clusters.services(cluster)
+
+      assert svc.repository_id == git.id
+      assert svc.git.ref == Console.Deployments.Settings.agent_ref()
+      assert svc.git.folder == "charts/deployment-operator"
+      assert svc.templated
+
+      {:ok, %{"deployToken" => token, "url" => url} = secrets} = Services.configuration(svc)
+      assert token == cluster.deploy_token
+      assert url == Path.join(Console.conf(:ext_url), "ext/gql")
+      assert secrets["clusterId"] == cluster.id
+      assert secrets["kasAddress"] == "wss://kas.example.com"
+    end
+
     test "it can create a gcp cluster with cloud specific configs" do
       user = admin_user()
       provider = insert(:cluster_provider, cloud: "gcp")
@@ -512,6 +546,18 @@ defmodule Console.Deployments.ClustersTest do
       refute refetch(svc)
 
       assert_receive {:event, %PubSub.ClusterDeleted{item: ^deleted}}
+    end
+
+    test "it cannot detach with a global service within the cluster" do
+      user = admin_user()
+      cluster = insert(:cluster)
+      service = insert(:service, cluster: cluster)
+      global = insert(:global_service, service: service)
+      insert(:service, owner: global)
+
+      {:ok, deleted} = Clusters.detach_cluster(cluster.id, user)
+
+      assert deleted.id == cluster.id
     end
 
     test "non-writers cannot detach" do
@@ -1005,7 +1051,7 @@ defmodule Console.Deployments.ClustersTest do
       expect(Kube.Utils, :get_secret, fn ^ns, ^kubeconf_secret ->
         {:ok, %CoreV1.Secret{data: %{"value" => Base.encode64("kubeconfig")}}}
       end)
-      expect(Console.Commands.Command, :cmd, fn "plural", ["deployments", "install", "--url", _, "--token", ^t, "--force"], _, [{"KUBECONFIG", f}, {"PLURAL_INSTALL_AGENT_CONFIRM", "true"}] ->
+      expect(Console.Commands.Command, :cmd_tee, fn "plural", ["deployments", "install", "--url", _, "--token", ^t, "--force"], _, [{"KUBECONFIG", f}, {"PLURAL_INSTALL_AGENT_CONFIRM", "true"}] ->
         case File.read(f) do
           {:ok, "kubeconfig"} -> {:ok, "yay"}
           err -> {:error, err}
@@ -1044,10 +1090,12 @@ defmodule Console.Deployments.ClustersTest do
         kind: "ConstraintTemplate",
         group: "gatekeeper.sh",
         version: "v1beta1",
+        name: "crd",
         namespaced: false,
         display_name: "Constraint Templates"
       }, admin_user())
 
+      assert pinned.name == "crd"
       assert pinned.kind == "ConstraintTemplate"
       assert pinned.group == "gatekeeper.sh"
       assert pinned.version == "v1beta1"
@@ -1062,6 +1110,7 @@ defmodule Console.Deployments.ClustersTest do
         kind: "ConstraintTemplate",
         group: "gatekeeper.sh",
         version: "v1beta1",
+        name: "crd",
         namespaced: false,
         display_name: "Constraint Templates",
         cluster_id: cluster.id
@@ -1093,6 +1142,19 @@ defmodule Console.Deployments.ClustersTest do
 
       assert deleted.id == pcr.id
       refute refetch(pcr)
+    end
+  end
+
+  describe "#update_upgrade_plan/1" do
+    test "it can update the upgrade plans for a cluster" do
+      cluster = insert(:cluster)
+
+      {:ok, updated} = Clusters.update_upgrade_plan(cluster)
+
+      assert updated.id == cluster.id
+      assert updated.upgrade_plan.deprecations
+      assert updated.upgrade_plan.compatibilities
+      assert updated.upgrade_plan.incompatibilities
     end
   end
 end

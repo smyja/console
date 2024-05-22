@@ -185,7 +185,9 @@ type RootQueryType {
 
   prAutomation(id: ID, name: String): PrAutomation
 
-  pullRequests(after: String, first: Int, before: String, last: Int, clusterId: ID, serviceId: ID, q: String): PullRequestConnection
+  pullRequests(
+    after: String, first: Int, before: String, last: Int, clusterId: ID, serviceId: ID, open: Boolean, q: String
+  ): PullRequestConnection
 
   scmWebhooks(after: String, first: Int, before: String, last: Int): ScmWebhookConnection
 
@@ -201,6 +203,9 @@ type RootQueryType {
 
   "gets summary information for all healthy\/unhealthy clusters in your fleet"
   clusterStatuses(q: String, tag: TagInput): [ClusterStatusInfo]
+
+  "gets summary information for upgradeability in your fleet"
+  upgradeStatistics(q: String, tag: TagInput): UpgradeStatistics
 
   "lists tags applied to any clusters in the fleet"
   tags(tag: String): [String]
@@ -251,6 +256,8 @@ type RootQueryType {
     q: String
 
     status: ServiceDeploymentStatus
+
+    errored: Boolean
 
     "the handle of the cluster for this service"
     cluster: String
@@ -323,10 +330,14 @@ type RootQueryType {
   notificationRouters(after: String, first: Int, before: String, last: Int, q: String): NotificationRouterConnection
 
   policyConstraints(
-    after: String, first: Int, before: String, last: Int, kind: String, namespace: String, kinds: [String], namespaces: [String], q: String
+    after: String, first: Int, before: String, last: Int, kind: String, namespace: String, kinds: [String], namespaces: [String], clusters: [ID], q: String
   ): PolicyConstraintConnection
 
   violationStatistics(field: ConstraintViolationField!): [ViolationStatistic]
+
+  policyStatistics(
+    aggregate: PolicyAggregate!, kind: String, namespace: String, kinds: [String], namespaces: [String], clusters: [ID], q: String
+  ): [PolicyStatistic]
 
   policyConstraint(id: ID!): PolicyConstraint
 
@@ -339,6 +350,18 @@ type RootQueryType {
   clusterManagedNamespaces(after: String, first: Int, before: String, last: Int): ManagedNamespaceConnection
 
   managedNamespace(id: ID!): ManagedNamespace
+
+  clusterStackRuns(after: String, first: Int, before: String, last: Int): StackRunConnection
+
+  stackRun(id: ID!): StackRun
+
+  infrastructureStack(id: ID!): InfrastructureStack
+
+  infrastructureStacks(after: String, first: Int, before: String, last: Int, q: String): InfrastructureStackConnection
+
+  observabilityProvider(id: ID!): ObservabilityProvider
+
+  observabilityProviders(after: String, first: Int, before: String, last: Int): ObservabilityProviderConnection
 
   deploymentSettings: DeploymentSettings
 }
@@ -452,6 +475,9 @@ type RootMutationType {
 
   createScmWebhook(connectionId: ID!, owner: String!): ScmWebhook
 
+  "creates a webhook reference in our system but doesn't attempt to create it in your upstream provider"
+  createScmWebhookPointer(attributes: ScmWebhookAttributes!): ScmWebhook
+
   createPrAutomation(attributes: PrAutomationAttributes!): PrAutomation
 
   updatePrAutomation(id: ID!, attributes: PrAutomationAttributes!): PrAutomation
@@ -484,6 +510,10 @@ type RootMutationType {
 
   "just registers a pointer record to a PR after it was created externally be some other automation"
   createPullRequestPointer(attributes: PullRequestAttributes): PullRequest
+
+  updatePullRequest(id: ID!, attributes: PullRequestUpdateAttributes): PullRequest
+
+  deletePullRequest(id: ID!): PullRequest
 
   createCluster(attributes: ClusterAttributes!): Cluster
 
@@ -669,6 +699,30 @@ type RootMutationType {
 
   deleteManagedNamespace(id: ID!): ManagedNamespace
 
+  updateStackRun(id: ID!, attributes: StackRunAttributes!): StackRun
+
+  completeStackRun(id: ID!, attributes: StackRunAttributes!): StackRun
+
+  updateRunStep(id: ID!, attributes: RunStepAttributes!): RunStep
+
+  addRunLogs(stepId: ID!, attributes: RunLogAttributes!): RunLogs
+
+  createStack(attributes: StackAttributes!): InfrastructureStack
+
+  updateStack(id: ID!, attributes: StackAttributes!): InfrastructureStack
+
+  deleteStack(id: ID!): InfrastructureStack
+
+  detachStack(id: ID!): InfrastructureStack
+
+  approveStackRun(id: ID!): StackRun
+
+  restartStackRun(id: ID!): StackRun
+
+  upsertObservabilityProvider(attributes: ObservabilityProviderAttributes!): ObservabilityProvider
+
+  deleteObservabilityProvider(id: ID!): ObservabilityProvider
+
   "a reusable mutation for updating rbac settings on core services"
   updateRbac(rbac: RbacAttributes!, serviceId: ID, clusterId: ID, providerId: ID): Boolean
 
@@ -683,6 +737,7 @@ type RootSubscriptionType {
   buildDelta(buildId: ID): BuildDelta
   commandDelta(buildId: ID!): CommandDelta
   notificationDelta: NotificationDelta
+  runLogsDelta(stepId: ID!): RunLogsDelta
 }
 
 input PolicyBindingAttributes {
@@ -739,6 +794,15 @@ type DeploymentSettings {
 
   "custom helm values to apply to all agents (useful for things like adding customary annotations\/labels)"
   agentHelmValues: String
+
+  "The console's expected agent version"
+  agentVsn: String!
+
+  "the latest known k8s version"
+  latestK8sVsn: String!
+
+  "your compliant k8s version"
+  compliantK8sVsn: String!
 
   "the repo to fetch CAPI manifests from, for both providers and clusters"
   artifactRepository: GitRepository
@@ -812,6 +876,402 @@ input RbacAttributes {
   writeBindings: [PolicyBindingAttributes]
 }
 
+enum ObservabilityProviderType {
+  DATADOG
+  NEWRELIC
+}
+
+input ObservabilityProviderAttributes {
+  type: ObservabilityProviderType!
+  name: String!
+  credentials: ObservabilityProviderCredentialsAttributes!
+}
+
+input ObservabilityProviderCredentialsAttributes {
+  datadog: DatadogCredentialsAttributes
+  newrelic: NewRelicCredentialsAttributes
+}
+
+input DatadogCredentialsAttributes {
+  apiKey: String!
+  appKey: String!
+}
+
+input NewRelicCredentialsAttributes {
+  apiKey: String!
+}
+
+input ObservableMetricAttributes {
+  identifier: String!
+  providerId: ID!
+}
+
+type ObservabilityProvider {
+  id: ID!
+  type: ObservabilityProviderType!
+  name: String!
+  insertedAt: DateTime
+  updatedAt: DateTime
+}
+
+type ObservableMetric {
+  id: ID!
+  identifier: String!
+  provider: ObservabilityProvider
+  insertedAt: DateTime
+  updatedAt: DateTime
+}
+
+type ObservabilityProviderConnection {
+  pageInfo: PageInfo!
+  edges: [ObservabilityProviderEdge]
+}
+
+enum StackStatus {
+  QUEUED
+  PENDING
+  RUNNING
+  SUCCESSFUL
+  FAILED
+  CANCELLED
+}
+
+enum StackType {
+  TERRAFORM
+  ANSIBLE
+}
+
+enum StepStatus {
+  PENDING
+  RUNNING
+  SUCCESSFUL
+  FAILED
+}
+
+enum StepStage {
+  PLAN
+  VERIFY
+  APPLY
+  INIT
+}
+
+input StackAttributes {
+  "the name of the stack"
+  name: String!
+
+  "A type for the stack, specifies the tool to use to apply it"
+  type: StackType!
+
+  "The repository to source IaC from"
+  repositoryId: ID!
+
+  "The cluster on which the terraform will be applied"
+  clusterId: ID!
+
+  "reference w\/in the repository where the IaC lives"
+  git: GitRefAttributes!
+
+  "optional k8s job configuration for the job that will apply this stack"
+  jobSpec: GateJobAttributes
+
+  "version\/image config for the tool you're using"
+  configuration: StackConfigurationAttributes!
+
+  "whether to require approval"
+  approval: Boolean
+
+  readBindings: [PolicyBindingAttributes]
+
+  writeBindings: [PolicyBindingAttributes]
+
+  files: [StackFileAttributes]
+
+  environment: [StackEnvironmentAttributes]
+
+  observableMetrics: [ObservableMetricAttributes]
+}
+
+input StackConfigurationAttributes {
+  "optional custom image you might want to use"
+  image: String
+
+  "the semver of the tool you wish to use"
+  version: String!
+}
+
+input StackRunAttributes {
+  "The status of this run"
+  status: StackStatus!
+
+  "The state from this runs plan or apply"
+  state: StackStateAttributes
+
+  "Output generated by this run"
+  output: [StackOutputAttributes]
+
+  "Any errors detected when trying to run this stack"
+  errors: [ServiceErrorAttributes]
+
+  "Why you decided to cancel this run"
+  cancellationReason: String
+}
+
+input RunStepAttributes {
+  status: StepStatus!
+}
+
+input RunLogAttributes {
+  logs: String!
+}
+
+input StackOutputAttributes {
+  name: String!
+  value: String!
+  secret: Boolean
+}
+
+input StackEnvironmentAttributes {
+  name: String!
+  value: String!
+  secret: Boolean
+}
+
+input StackFileAttributes {
+  path: String!
+  content: String!
+}
+
+input StackStateAttributes {
+  plan: String
+  state: [StackStateResourceAttributes]
+}
+
+input StackStateResourceAttributes {
+  "a string identifier for this resource, different tools will have different conventions"
+  identifier: String!
+
+  "a string name of the resource type"
+  resource: String!
+
+  "the name of the resource within that type"
+  name: String!
+
+  "arbitrary configuration used to create the resource"
+  configuration: Json
+
+  "identifiers this resource is linked to for graphing in the UI"
+  links: [String]
+}
+
+type InfrastructureStack {
+  id: ID
+
+  "the name of the stack"
+  name: String!
+
+  "A type for the stack, specifies the tool to use to apply it"
+  type: StackType!
+
+  "reference w\/in the repository where the IaC lives"
+  git: GitRef!
+
+  "whether the stack is actively tracking changes in git"
+  paused: Boolean
+
+  "optional k8s job configuration for the job that will apply this stack"
+  jobSpec: JobGateSpec
+
+  "version\/image config for the tool you're using"
+  configuration: StackConfiguration!
+
+  "whether to require approval"
+  approval: Boolean
+
+  "whether this stack was previously deleted and is pending cleanup"
+  deletedAt: DateTime
+
+  "why this run was cancelled"
+  cancellationReason: String
+
+  runs(after: String, first: Int, before: String, last: Int, pullRequestId: ID): StackRunConnection
+
+  pullRequests(after: String, first: Int, before: String, last: Int): PullRequestConnection
+
+  "files bound to a run of this stack"
+  files: [StackFile]
+
+  "environment variables for this stack"
+  environment: [StackEnvironment]
+
+  "a list of metrics to poll to determine if a stack run should be cancelled"
+  observableMetrics: [ObservableMetric]
+
+  "the most recent output for this stack"
+  output: [StackOutput]
+
+  "the most recent state of this stack"
+  state: StackState
+
+  "the cluster this stack runs on"
+  cluster: Cluster
+
+  "the git repository you're sourcing IaC from"
+  repository: GitRepository
+
+  readBindings: [PolicyBinding]
+
+  writeBindings: [PolicyBinding]
+
+  insertedAt: DateTime
+
+  updatedAt: DateTime
+}
+
+type StackConfiguration {
+  "optional custom image you might want to use"
+  image: String
+
+  "the semver of the tool you wish to use"
+  version: String!
+}
+
+type StackRun {
+  id: ID!
+
+  "The status of this run"
+  status: StackStatus!
+
+  "A type for the stack, specifies the tool to use to apply it"
+  type: StackType!
+
+  "reference w\/in the repository where the IaC lives"
+  git: GitRef!
+
+  "optional k8s job configuration for the job that will apply this stack"
+  jobSpec: JobGateSpec
+
+  "version\/image config for the tool you're using"
+  configuration: StackConfiguration!
+
+  "whether to require approval"
+  approval: Boolean
+
+  "the commit message"
+  message: String
+
+  "when this run was approved"
+  approvedAt: DateTime
+
+  "https url to fetch the latest tarball of stack IaC"
+  tarball: String!
+
+  "the approver of this job"
+  approver: User
+
+  "The steps to perform when running this stack"
+  steps: [RunStep]
+
+  "files bound to a run of this stack"
+  files: [StackFile]
+
+  "environment variables for this stack"
+  environment: [StackEnvironment]
+
+  "the most recent output for this stack"
+  output: [StackOutput]
+
+  "the most recent state of this stack"
+  state: StackState
+
+  "a list of errors generated by the deployment operator"
+  errors: [ServiceError]
+
+  "the cluster this stack runs on"
+  cluster: Cluster
+
+  "the git repository you're sourcing IaC from"
+  repository: GitRepository
+
+  insertedAt: DateTime
+
+  updatedAt: DateTime
+}
+
+type RunStep {
+  id: ID!
+  status: StepStatus!
+  stage: StepStage!
+  name: String!
+  cmd: String!
+  args: [String!]
+  index: Int!
+  logs: [RunLogs]
+  insertedAt: DateTime
+  updatedAt: DateTime
+}
+
+type RunLogs {
+  id: ID!
+  logs: String!
+  insertedAt: DateTime
+  updatedAt: DateTime
+}
+
+type StackOutput {
+  name: String!
+  value: String!
+  secret: Boolean
+}
+
+type StackEnvironment {
+  name: String!
+  value: String!
+  secret: Boolean
+}
+
+type StackFile {
+  path: String!
+  content: String!
+}
+
+type StackState {
+  id: ID!
+  plan: String
+  state: [StackStateResource]
+}
+
+type StackStateResource {
+  "a string identifier for this resource, different tools will have different conventions"
+  identifier: String!
+
+  "a string name of the resource type"
+  resource: String!
+
+  "the name of the resource within that type"
+  name: String!
+
+  "arbitrary configuration used to create the resource"
+  configuration: Map
+
+  "identifiers this resource is linked to for graphing in the UI"
+  links: [String]
+}
+
+type InfrastructureStackConnection {
+  pageInfo: PageInfo!
+  edges: [InfrastructureStackEdge]
+}
+
+type StackRunConnection {
+  pageInfo: PageInfo!
+  edges: [StackRunEdge]
+}
+
+type RunLogsDelta {
+  delta: Delta
+  payload: RunLogs
+}
+
 "A reference for a globalized service, which targets clusters based on the configured criteria"
 input GlobalServiceAttributes {
   "name for this global service"
@@ -825,6 +1285,14 @@ input GlobalServiceAttributes {
 
   "cluster api provider to target"
   providerId: ID
+
+  "whether you want the global service to take ownership of existing plural services"
+  reparent: Boolean
+
+  template: ServiceTemplateAttributes
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: CascadeAttributes
 }
 
 "Attributes for configuring a managed namespace"
@@ -847,6 +1315,9 @@ input ManagedNamespaceAttributes {
   service: ServiceTemplateAttributes
 
   target: ClusterTargetAttributes
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: CascadeAttributes
 }
 
 "Attributes for configuring a service in something like a managed namespace"
@@ -867,6 +1338,9 @@ input ServiceTemplateAttributes {
 
   "a list of secure configuration that will be added to any services created by this template"
   configuration: [ConfigAttributes]
+
+  "dependencies for the service to be spawned"
+  dependencies: [ServiceDependencyAttributes]
 
   "settings to configure git for a service"
   git: GitRefAttributes
@@ -890,6 +1364,12 @@ input ClusterTargetAttributes {
   distro: ClusterDistro
 }
 
+"Whether you want to delete or detach owned resources"
+input CascadeAttributes {
+  delete: Boolean
+  detach: Boolean
+}
+
 "a rules based mechanism to redeploy a service across a fleet of clusters"
 type GlobalService {
   "internal id of this global service"
@@ -903,6 +1383,15 @@ type GlobalService {
 
   "the kubernetes distribution to target with this global service"
   distro: ClusterDistro
+
+  "whether you want to reparent existing plural services under this global service"
+  reparent: Boolean
+
+  "behavior for all owned resources when this global service is deleted"
+  cascade: Cascade
+
+  "the service template used to spawn services"
+  template: ServiceTemplate
 
   "the service to replicate across clusters"
   service: ServiceDeployment
@@ -942,8 +1431,13 @@ type ManagedNamespace {
   "the timestamp this namespace was deleted at, indicating it's currently draining"
   deletedAt: DateTime
 
+  "behavior for all owned resources when this global service is deleted"
+  cascade: Cascade
+
   "A template for creating the core service for this namespace"
   service: ServiceTemplate
+
+  services(after: String, first: Int, before: String, last: Int, q: String): ServiceDeploymentConnection
 
   insertedAt: DateTime
 
@@ -965,6 +1459,10 @@ type ServiceTemplate {
 
   "a list of context ids to add to this service"
   contexts: [ID]
+
+  repository: GitRepository
+
+  dependencies: [ServiceDependency]
 
   "possibly secret configuration for all spawned services, don't query this in list endpoints"
   configuration: [ServiceConfiguration]
@@ -991,6 +1489,15 @@ type ClusterTarget {
   distro: ClusterDistro
 }
 
+"A spec for specifying cascade behavior on an owning resource"
+type Cascade {
+  "whether to perform a drain-delete for all owned resources"
+  delete: Boolean
+
+  "whether to perform a detach-delete for all owned resources"
+  detach: Boolean
+}
+
 type GlobalServiceConnection {
   pageInfo: PageInfo!
   edges: [GlobalServiceEdge]
@@ -999,6 +1506,18 @@ type GlobalServiceConnection {
 type ManagedNamespaceConnection {
   pageInfo: PageInfo!
   edges: [ManagedNamespaceEdge]
+}
+
+enum ConstraintEnforcement {
+  WARN
+  DENY
+  DRY_RUN
+}
+
+enum PolicyAggregate {
+  CLUSTER
+  ENFORCEMENT
+  INSTALLED
 }
 
 enum ConstraintViolationField {
@@ -1020,6 +1539,8 @@ input PolicyConstraintAttributes {
   ref: ConstraintRefAttributes
 
   violations: [ViolationAttributes]
+
+  enforcement: ConstraintEnforcement
 }
 
 input ConstraintRefAttributes {
@@ -1048,11 +1569,15 @@ type PolicyConstraint {
 
   violationCount: Int
 
+  enforcement: ConstraintEnforcement
+
   "Fetches the live constraint object from K8s, this is an expensive query and should not be done in list endpoints"
   object: KubernetesUnstructured
 
   "pointer to the kubernetes resource itself"
   ref: ConstraintRef
+
+  cluster: Cluster
 
   violations: [Violation]
 
@@ -1069,12 +1594,21 @@ type ConstraintRef {
 "A summary of statistics for violations w\/in a specific column"
 type ViolationStatistic {
   "the value of this field being aggregated"
-  value: String!
+  value: String
 
   "the total number of violations found"
   violations: Int
 
   "the total number of policy constraints"
+  count: Int
+}
+
+"Aggregate statistics for policies across your fleet"
+type PolicyStatistic {
+  "the field you're computing this statistic on"
+  aggregate: String
+
+  "the count for this aggregate"
   count: Int
 }
 
@@ -1577,6 +2111,8 @@ type PipelineStageEdge {
 
   gates: [PipelineGate]
 
+  pipeline: Pipeline
+
   insertedAt: DateTime
 
   updatedAt: DateTime
@@ -1603,6 +2139,9 @@ type PipelineGate {
 
   "the kubernetes job running this gate (should only be fetched lazily as this is a heavy operation)"
   job: Job
+
+  "the edge this gate lives on"
+  edge: PipelineStageEdge
 
   "the cluster this gate can run on"
   cluster: Cluster
@@ -1814,6 +2353,8 @@ input ServiceDeploymentAttributes {
 
   configuration: [ConfigAttributes]
 
+  dependencies: [ServiceDependencyAttributes]
+
   readBindings: [PolicyBindingAttributes]
 
   writeBindings: [PolicyBindingAttributes]
@@ -1828,11 +2369,25 @@ input SyncConfigAttributes {
 
 input HelmConfigAttributes {
   values: String
+
   valuesFiles: [String]
+
   chart: String
+
   version: String
+
+  release: String
+
+  url: String
+
   set: HelmValueAttributes
+
   repository: NamespacedName
+
+  git: GitRefAttributes
+
+  "pointer to a Plural GitRepository"
+  repositoryId: ID
 }
 
 input MetadataAttributes {
@@ -1857,6 +2412,8 @@ input ServiceUpdateAttributes {
 
   interval: String
 
+  syncConfig: SyncConfigAttributes
+
   "if you should apply liquid templating to raw yaml files, defaults to true"
   templated: Boolean
 
@@ -1867,6 +2424,8 @@ input ServiceUpdateAttributes {
   configuration: [ConfigAttributes]
 
   kustomize: KustomizeAttributes
+
+  dependencies: [ServiceDependencyAttributes]
 
   readBindings: [PolicyBindingAttributes]
 
@@ -1884,6 +2443,7 @@ input ServiceCloneAttributes {
 input GitRefAttributes {
   ref: String!
   folder: String!
+  files: [String!]
 }
 
 input ConfigAttributes {
@@ -1924,6 +2484,11 @@ input ServiceContextAttributes {
 "a binding from a service to a service context"
 input ContextBindingAttributes {
   contextId: String!
+}
+
+"A named depedency of a service, will prevent applying any manifests until the dependency has become ready"
+input ServiceDependencyAttributes {
+  name: String!
 }
 
 input KustomizeAttributes {
@@ -2031,6 +2596,9 @@ type ServiceDeployment {
   "bound contexts for this service"
   contexts: [ServiceContext]
 
+  "the dependencies of this service, actualization will not happen until all are HEALTHY"
+  dependencies: [ServiceDependency]
+
   "a relay connection of all revisions of this service, these are periodically pruned up to a history limit"
   revisions(after: String, first: Int, before: String, last: Int): RevisionConnection
 
@@ -2074,6 +2642,9 @@ type GitRef {
 
   "the folder manifests live under"
   folder: String!
+
+  "a list of individual files to include as well"
+  files: [String!]
 }
 
 type ObjectReference {
@@ -2085,8 +2656,19 @@ type HelmSpec {
   "the name of the chart this service is using"
   chart: String
 
+  "the helm repository url to use"
+  url: String
+
   "a helm values file to use with this service, requires auth and so is heavy to query"
   values: String
+
+  release: String
+
+  "spec of where to find the chart in git"
+  git: GitRef
+
+  "a git repository in Plural to use as a source"
+  repositoryId: ID
 
   "pointer to the flux helm repository resource used for this chart"
   repository: ObjectReference
@@ -2231,6 +2813,15 @@ type ServiceContext {
   updatedAt: DateTime
 }
 
+"A dependency of a service, the service will not actualize until all dependencies are ready"
+type ServiceDependency {
+  id: ID!
+  status: ServiceDeploymentStatus
+  name: String!
+  insertedAt: DateTime
+  updatedAt: DateTime
+}
+
 "A tree view of the kubernetes object hierarchy beneath a component"
 type ComponentTree {
   root: KubernetesUnstructured
@@ -2300,6 +2891,9 @@ input ClusterAttributes {
 
   cloudSettings: CloudSettingsAttributes
 
+  "status of the upgrade plan for this cluster"
+  upgradePlan: UpgradePlanAttributes
+
   nodePools: [NodePoolAttributes]
 
   readBindings: [PolicyBindingAttributes]
@@ -2335,6 +2929,9 @@ input ClusterUpdateAttributes {
   "pass a kubeconfig for this cluster (DEPRECATED)"
   kubeconfig: KubeconfigAttributes
 
+  "status of the upgrade plan for this cluster"
+  upgradePlan: UpgradePlanAttributes
+
   protect: Boolean
 
   distro: ClusterDistro
@@ -2350,6 +2947,17 @@ input ClusterServiceAttributes {
   id: ID!
   repositoryId: ID
   git: GitRefAttributes!
+}
+
+input UpgradePlanAttributes {
+  "whether all compatibilities for a cluster upgrade have been cleared"
+  compatibilities: Boolean
+
+  "whether all incompatibilities w\/in runtime components have been cleared"
+  incompatibilities: Boolean
+
+  "whether all deprecated apis for a cluster have been cleared"
+  deprecations: Boolean
 }
 
 input NodePoolAttributes {
@@ -2453,6 +3061,7 @@ input AgentMigrationAttributes {
 }
 
 input PinnedCustomResourceAttributes {
+  name: String!
   displayName: String!
   group: String!
   version: String!
@@ -2556,6 +3165,9 @@ type Cluster {
 
   "the cloud settings for this cluster (for instance its aws region)"
   settings: CloudSettings
+
+  "Checklist of tasks to complete to safely upgrade this cluster"
+  upgradePlan: ClusterUpgradePlan
 
   "the url of the kas server you can access this cluster from"
   kasUrl: String
@@ -2663,6 +3275,18 @@ type Cluster {
   updatedAt: DateTime
 }
 
+"A consolidated checklist of tasks that need to be completed to upgrade this cluster"
+type ClusterUpgradePlan {
+  "whether api compatibilities with all addons and kubernetes are satisfied"
+  compatibilities: Boolean
+
+  "whether mutual api incompatibilities with all addons and kubernetes have been satisfied"
+  incompatibilities: Boolean
+
+  "whether all api deprecations have been cleared for the target version"
+  deprecations: Boolean
+}
+
 "a historical revision of a cluster, including version, cloud and node group configuration"
 type ClusterRevision {
   id: ID!
@@ -2768,6 +3392,21 @@ type ClusterStatus {
   failureMessage: String
   failureReason: String
   conditions: [ClusterCondition]
+}
+
+"Summary statistics of the upgradeability of your fleet"
+type UpgradeStatistics {
+  "total number of clusters"
+  count: Int
+
+  "the number of clusters currently upgradeable"
+  upgradeable: Int
+
+  "the number of clusters currently at the latest version"
+  latest: Int
+
+  "the number of clusters compliant w\/ your versioning policy"
+  compliant: Int
 }
 
 "a single condition struct for various phases of the cluster provisionining process"
@@ -2912,6 +3551,7 @@ type ClusterStatusInfo {
 "A reference to a custom resource you want to be displayed in the k8s dashboard"
 type PinnedCustomResource {
   id: ID!
+  name: String!
   displayName: String!
   group: String!
   version: String!
@@ -3163,6 +3803,29 @@ input PullRequestAttributes {
   clusterId: ID
   service: NamespacedName
   cluster: NamespacedName
+}
+
+"attributes for a pull request pointer record"
+input PullRequestUpdateAttributes {
+  title: String!
+  labels: [String]
+  status: PrStatus!
+  serviceId: ID
+  clusterId: ID
+  service: NamespacedName
+  cluster: NamespacedName
+}
+
+"The attributes to configure a new webhook for a SCM provider"
+input ScmWebhookAttributes {
+  "the secret token for authenticating this webhook via hmac signature"
+  hmac: String!
+
+  "the type of webhook to create"
+  type: ScmType!
+
+  "the owner for this webhook in your SCM, eg a github org or gitlab group"
+  owner: String!
 }
 
 "a git repository available for deployments"
@@ -3945,6 +4608,9 @@ type ResourceSpec {
 }
 
 type KubernetesUnstructured {
+  group: String
+  version: String!
+  kind: String!
   raw: Map
   metadata: Metadata!
   events: [Event]
@@ -4741,6 +5407,9 @@ input PersonaConfigurationAttributes {
   "enable full ui for this persona"
   all: Boolean
 
+  "configuration for the homepage for the given persona"
+  home: PersonaHomeAttributes
+
   "enable individual parts of the deployments views"
   deployments: PersonaDeploymentAttributes
 
@@ -4765,6 +5434,11 @@ input PersonaSidebarAttributes {
   settings: Boolean
   backups: Boolean
   stacks: Boolean
+}
+
+input PersonaHomeAttributes {
+  manager: Boolean
+  security: Boolean
 }
 
 type User {
@@ -4847,6 +5521,7 @@ type RoleBinding {
 type LoginInfo {
   oidcUri: String
   external: Boolean
+  oidcName: String
 }
 
 type Notification {
@@ -4917,6 +5592,9 @@ type PersonaConfiguration {
   "enable full ui for this persona"
   all: Boolean
 
+  "settings for the home page for this persona"
+  home: PersonaHome
+
   "enable individual parts of the deployments views"
   deployments: PersonaDeployment
 
@@ -4941,6 +5619,11 @@ type PersonaSidebar {
   settings: Boolean
   backups: Boolean
   stacks: Boolean
+}
+
+type PersonaHome {
+  manager: Boolean
+  security: Boolean
 }
 
 type UserConnection {
@@ -5036,6 +5719,7 @@ type ConsoleConfiguration {
   vpnEnabled: Boolean
   byok: Boolean
   externalOidc: Boolean
+  oidcName: String
   features: AvailableFeatures
   manifest: PluralManifest
   gitStatus: GitStatus
@@ -5381,5 +6065,20 @@ type ManagedNamespaceEdge {
 
 type GlobalServiceEdge {
   node: GlobalService
+  cursor: String
+}
+
+type StackRunEdge {
+  node: StackRun
+  cursor: String
+}
+
+type InfrastructureStackEdge {
+  node: InfrastructureStack
+  cursor: String
+}
+
+type ObservabilityProviderEdge {
+  node: ObservabilityProvider
   cursor: String
 }

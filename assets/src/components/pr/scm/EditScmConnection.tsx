@@ -3,9 +3,8 @@ import {
   Accordion,
   Button,
   FormField,
-  ListBoxItem,
+  Input,
   Modal,
-  Select,
 } from '@pluralsh/design-system'
 import Input2 from '@pluralsh/design-system/dist/components/Input2'
 import { useTheme } from 'styled-components'
@@ -14,7 +13,6 @@ import pick from 'lodash/pick'
 import {
   ScmConnectionAttributes,
   ScmConnectionFragment,
-  ScmType,
   useUpdateScmConnectionMutation,
 } from 'generated/graphql'
 
@@ -25,7 +23,7 @@ import { GqlError } from 'components/utils/Alert'
 
 import { ApolloError } from '@apollo/client'
 
-import { scmTypeToIcon, scmTypeToLabel } from './PrScmConnectionsColumns'
+import GitProviderSelect from './GitProviderSelect'
 
 function EditScmConnectionModalBase({
   open,
@@ -144,27 +142,10 @@ export function ScmConnectionForm({
         gap: theme.spacing.medium,
       }}
     >
-      <FormField
-        label="Provider type"
-        required
-      >
-        <Select
-          selectedKey={formState.type}
-          leftContent={
-            !formState.type ? undefined : scmTypeToIcon[formState.type || '']
-          }
-          label="Select provider type"
-          onSelectionChange={(key) => updateFormState({ type: key as ScmType })}
-        >
-          {[ScmType.Github, ScmType.Gitlab].map((type) => (
-            <ListBoxItem
-              key={type}
-              leftContent={scmTypeToIcon[type]}
-              label={scmTypeToLabel[type]}
-            />
-          ))}
-        </Select>
-      </FormField>
+      <GitProviderSelect
+        selectedKey={formState.type}
+        updateSelectedKey={(type) => updateFormState({ type })}
+      />
       <FormField
         label="Name"
         required
@@ -211,12 +192,12 @@ export function ScmConnectionForm({
             />
           </FormField>
           <FormField label="Signing private key">
-            <InputRevealer
-              defaultRevealed={false}
+            <Input
               value={formState.signingPrivateKey ?? ''}
               onChange={(e) =>
                 updateFormState({ signingPrivateKey: e.target.value })
               }
+              multiline
             />
           </FormField>
         </div>

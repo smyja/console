@@ -26,7 +26,7 @@ import { StackedText } from 'components/utils/table/StackedText'
 import { MoreMenu } from 'components/utils/MoreMenu'
 
 import { EditScmConnectionModal } from './EditScmConnection'
-import { CreateScmWebhookModal } from './CreateScmWebhook'
+import { CreateScmConnectionWebhookModal } from './CreateScmConnectionWebhook'
 
 enum MenuItemKey {
   Edit = 'edit',
@@ -49,11 +49,7 @@ const ColBaseUrl = columnHelper.accessor(({ node }) => node?.baseUrl, {
   header: 'Base url',
   meta: { truncate: true },
   cell: function Cell({ getValue }) {
-    return (
-      <TruncateStart>
-        <span>{getValue()}</span>
-      </TruncateStart>
-    )
+    return <TruncateStart>{getValue()}</TruncateStart>
   },
 })
 
@@ -62,11 +58,7 @@ const ColApiUrl = columnHelper.accessor(({ node }) => node?.apiUrl, {
   header: 'API url',
   meta: { truncate: true },
   cell: function Cell({ getValue }) {
-    return (
-      <TruncateStart>
-        <span>{getValue()}</span>
-      </TruncateStart>
-    )
+    return <TruncateStart>{getValue()}</TruncateStart>
   },
 })
 
@@ -207,7 +199,7 @@ export const ColActions = columnHelper.display({
           />
         </MoreMenu>
         {/* Modals */}
-        <CreateScmWebhookModal
+        <CreateScmConnectionWebhookModal
           connection={scmConnection}
           open={menuKey === MenuItemKey.CreateWebhook}
           onClose={() => setMenuKey('')}

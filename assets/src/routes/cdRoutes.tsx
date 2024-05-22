@@ -4,7 +4,6 @@ import ContinuousDeployment, {
 import Clusters from 'components/cd/clusters/Clusters'
 import Repositories from 'components/cd/repos/Repositories'
 import Services from 'components/cd/services/Services'
-import Providers from 'components/cd/providers/Providers'
 import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { useCDEnabled } from 'components/cd/utils/useCDEnabled'
@@ -33,13 +32,25 @@ import SelfManage from 'components/cd/globalSettings/SelfManage'
 
 import Pipelines from 'components/cd/pipelines/Pipelines'
 
-import GlobalSettingsObservability from 'components/cd/globalSettings/GlobalSettingsObservability'
+import ObservabilitySettings from 'components/cd/globalSettings/observability/ObservabilitySettings'
 
 import { GlobalSettingsAgents } from 'components/cd/globalSettings/GlobalSettingsAgents'
 
 import ServiceLogs from 'components/cd/services/service/ServiceLogs'
 
 import ClusterLogs from 'components/cd/cluster/ClusterLogs'
+
+import GlobalServices from 'components/cd/globalServices/GlobalService'
+
+import GlobalServiceDetailView from 'components/cd/globalServices/GlobalServiceDetailView'
+
+import Namespaces from 'components/cd/namespaces/Namespaces'
+
+import NamespacesDetailView from 'components/cd/namespaces/NamespacesDetailView'
+
+import ServiceDependencies from 'components/cd/services/service/ServiceDependencies'
+
+import ObservabilityProviders from 'components/cd/globalSettings/observability/ObservabilityProviders'
 
 import Cluster from '../components/cd/cluster/Cluster'
 import ClusterServices from '../components/cd/cluster/ClusterServices'
@@ -82,11 +93,14 @@ import {
   CLUSTER_PODS_PATH,
   CLUSTER_REL_PATH,
   CLUSTER_SERVICES_PATH,
+  GLOBAL_SERVICES_REL_PATH,
+  GLOBAL_SERVICE_PARAM_ID,
   GLOBAL_SETTINGS_REL_PATH,
+  NAMESPACES_PARAM_ID,
+  NAMESPACES_REL_PATH,
   NODE_REL_PATH,
   PIPELINES_REL_PATH,
   POD_REL_PATH,
-  PROVIDERS_REL_PATH,
   REPOS_REL_PATH,
   SERVICES_REL_PATH,
   SERVICE_COMPONENTS_PATH,
@@ -174,7 +188,7 @@ const mainRoutes = (
       element={
         <Navigate
           replace
-          to={REPOS_REL_PATH}
+          to={`../${REPOS_REL_PATH}`}
         />
       }
     />
@@ -183,14 +197,32 @@ const mainRoutes = (
       element={<Repositories />}
     />
     <Route
-      path={PROVIDERS_REL_PATH}
-      element={<Providers />}
+      path={NAMESPACES_REL_PATH}
+      element={<Namespaces />}
     />
     <Route
       path={ADDONS_REL_PATH}
       element={<AddOns />}
     />
+    <Route
+      path={GLOBAL_SERVICES_REL_PATH}
+      element={<GlobalServices />}
+    />
   </Route>
+)
+
+const globalServiceRoutes = (
+  <Route
+    path={`${GLOBAL_SERVICES_REL_PATH}/:${GLOBAL_SERVICE_PARAM_ID}?`}
+    element={<GlobalServiceDetailView />}
+  />
+)
+
+const namespacesRoutes = (
+  <Route
+    path={`${NAMESPACES_REL_PATH}/:${NAMESPACES_PARAM_ID}?`}
+    element={<NamespacesDetailView />}
+  />
 )
 
 const globalSettingsRoutes = (
@@ -236,14 +268,19 @@ const globalSettingsRoutes = (
       element={<SelfManage />}
     />
     <Route
-      path="observability"
-      element={<GlobalSettingsObservability />}
+      path="observability/settings"
+      element={<ObservabilitySettings />}
+    />
+    <Route
+      path="observability/providers"
+      element={<ObservabilityProviders />}
     />
   </Route>
 )
 
 const clusterDetailsRoutes = [
   <Route
+    key="cluster-main"
     path={CLUSTER_REL_PATH}
     element={<Cluster />}
   >
@@ -282,6 +319,7 @@ const clusterDetailsRoutes = [
     />
   </Route>,
   <Route
+    key="cluster-addon"
     path={`${CLUSTER_REL_PATH}/${CLUSTER_ADDONS_REL_PATH}/:${CLUSTER_ADDONS_PARAM_ID}`}
     element={<ClusterAddOnDetails />}
   >
@@ -424,6 +462,10 @@ const serviceDetailsRoutes = (
       path="helm"
     />
     <Route
+      element={<ServiceDependencies />}
+      path="dependencies"
+    />
+    <Route
       element={<ServiceLogs />}
       path="logs"
     />
@@ -465,5 +507,7 @@ export const cdRoutes = [
     {serviceDetailsRoutes}
     {componentRoutes}
     {pipelineRoutes}
+    {globalServiceRoutes}
+    {namespacesRoutes}
   </Route>,
 ]

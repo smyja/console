@@ -1,12 +1,18 @@
 fragment GlobalService on GlobalService {
   id
+  distro
   name
+  cascade {
+    delete
+    detach
+  }
   provider {
     id
     name
     cloud
     namespace
   }
+  reparent
   service {
     id
     name
@@ -38,5 +44,34 @@ mutation CreateGlobalService(
 mutation DeleteGlobalService($id: ID!) {
   deleteGlobalService(id: $id) {
     id
+  }
+}
+
+query GetGlobalServices($first: Int, $after: String) {
+  globalServices(first: $first, after: $after) {
+    pageInfo {
+      ...PageInfo
+    }
+    edges {
+      node {
+        ...GlobalService
+      }
+    }
+  }
+}
+
+query GetServiceData($serviceId: ID!, $first: Int, $after: String) {
+  globalService(id: $serviceId) {
+    ...GlobalService
+    services(first: $first, after: $after) {
+      pageInfo {
+        ...PageInfo
+      }
+      edges {
+        node {
+          ...ServiceDeploymentsRow
+        }
+      }
+    }
   }
 }

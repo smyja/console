@@ -200,6 +200,64 @@ func (_c *ConsoleClientMock_CreateGlobalService_Call) RunAndReturn(run func(stri
 	return _c
 }
 
+// CreateGlobalServiceFromTemplate provides a mock function with given fields: attributes
+func (_m *ConsoleClientMock) CreateGlobalServiceFromTemplate(attributes gqlclient.GlobalServiceAttributes) (*gqlclient.GlobalServiceFragment, error) {
+	ret := _m.Called(attributes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateGlobalServiceFromTemplate")
+	}
+
+	var r0 *gqlclient.GlobalServiceFragment
+	var r1 error
+	if rf, ok := ret.Get(0).(func(gqlclient.GlobalServiceAttributes) (*gqlclient.GlobalServiceFragment, error)); ok {
+		return rf(attributes)
+	}
+	if rf, ok := ret.Get(0).(func(gqlclient.GlobalServiceAttributes) *gqlclient.GlobalServiceFragment); ok {
+		r0 = rf(attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gqlclient.GlobalServiceFragment)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(gqlclient.GlobalServiceAttributes) error); ok {
+		r1 = rf(attributes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConsoleClientMock_CreateGlobalServiceFromTemplate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateGlobalServiceFromTemplate'
+type ConsoleClientMock_CreateGlobalServiceFromTemplate_Call struct {
+	*mock.Call
+}
+
+// CreateGlobalServiceFromTemplate is a helper method to define mock.On call
+//   - attributes gqlclient.GlobalServiceAttributes
+func (_e *ConsoleClientMock_Expecter) CreateGlobalServiceFromTemplate(attributes interface{}) *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call {
+	return &ConsoleClientMock_CreateGlobalServiceFromTemplate_Call{Call: _e.mock.On("CreateGlobalServiceFromTemplate", attributes)}
+}
+
+func (_c *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call) Run(run func(attributes gqlclient.GlobalServiceAttributes)) *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(gqlclient.GlobalServiceAttributes))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call) Return(_a0 *gqlclient.GlobalServiceFragment, _a1 error) *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call) RunAndReturn(run func(gqlclient.GlobalServiceAttributes) (*gqlclient.GlobalServiceFragment, error)) *ConsoleClientMock_CreateGlobalServiceFromTemplate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateNamespace provides a mock function with given fields: ctx, attributes
 func (_m *ConsoleClientMock) CreateNamespace(ctx context.Context, attributes gqlclient.ManagedNamespaceAttributes) (*gqlclient.ManagedNamespaceFragment, error) {
 	ret := _m.Called(ctx, attributes)
@@ -674,6 +732,65 @@ func (_c *ConsoleClientMock_CreateService_Call) Return(_a0 *gqlclient.ServiceDep
 }
 
 func (_c *ConsoleClientMock_CreateService_Call) RunAndReturn(run func(*string, gqlclient.ServiceDeploymentAttributes) (*gqlclient.ServiceDeploymentExtended, error)) *ConsoleClientMock_CreateService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateStack provides a mock function with given fields: ctx, attributes
+func (_m *ConsoleClientMock) CreateStack(ctx context.Context, attributes gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error) {
+	ret := _m.Called(ctx, attributes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateStack")
+	}
+
+	var r0 *gqlclient.InfrastructureStackFragment
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error)); ok {
+		return rf(ctx, attributes)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gqlclient.StackAttributes) *gqlclient.InfrastructureStackFragment); ok {
+		r0 = rf(ctx, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gqlclient.InfrastructureStackFragment)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gqlclient.StackAttributes) error); ok {
+		r1 = rf(ctx, attributes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConsoleClientMock_CreateStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateStack'
+type ConsoleClientMock_CreateStack_Call struct {
+	*mock.Call
+}
+
+// CreateStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - attributes gqlclient.StackAttributes
+func (_e *ConsoleClientMock_Expecter) CreateStack(ctx interface{}, attributes interface{}) *ConsoleClientMock_CreateStack_Call {
+	return &ConsoleClientMock_CreateStack_Call{Call: _e.mock.On("CreateStack", ctx, attributes)}
+}
+
+func (_c *ConsoleClientMock_CreateStack_Call) Run(run func(ctx context.Context, attributes gqlclient.StackAttributes)) *ConsoleClientMock_CreateStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gqlclient.StackAttributes))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_CreateStack_Call) Return(_a0 *gqlclient.InfrastructureStackFragment, _a1 error) *ConsoleClientMock_CreateStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ConsoleClientMock_CreateStack_Call) RunAndReturn(run func(context.Context, gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error)) *ConsoleClientMock_CreateStack_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1210,6 +1327,146 @@ func (_c *ConsoleClientMock_DeleteService_Call) Return(_a0 error) *ConsoleClient
 }
 
 func (_c *ConsoleClientMock_DeleteService_Call) RunAndReturn(run func(string) error) *ConsoleClientMock_DeleteService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteStack provides a mock function with given fields: ctx, id
+func (_m *ConsoleClientMock) DeleteStack(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteStack")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ConsoleClientMock_DeleteStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteStack'
+type ConsoleClientMock_DeleteStack_Call struct {
+	*mock.Call
+}
+
+// DeleteStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ConsoleClientMock_Expecter) DeleteStack(ctx interface{}, id interface{}) *ConsoleClientMock_DeleteStack_Call {
+	return &ConsoleClientMock_DeleteStack_Call{Call: _e.mock.On("DeleteStack", ctx, id)}
+}
+
+func (_c *ConsoleClientMock_DeleteStack_Call) Run(run func(ctx context.Context, id string)) *ConsoleClientMock_DeleteStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_DeleteStack_Call) Return(_a0 error) *ConsoleClientMock_DeleteStack_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ConsoleClientMock_DeleteStack_Call) RunAndReturn(run func(context.Context, string) error) *ConsoleClientMock_DeleteStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachService provides a mock function with given fields: serviceId
+func (_m *ConsoleClientMock) DetachService(serviceId string) error {
+	ret := _m.Called(serviceId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachService")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(serviceId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ConsoleClientMock_DetachService_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachService'
+type ConsoleClientMock_DetachService_Call struct {
+	*mock.Call
+}
+
+// DetachService is a helper method to define mock.On call
+//   - serviceId string
+func (_e *ConsoleClientMock_Expecter) DetachService(serviceId interface{}) *ConsoleClientMock_DetachService_Call {
+	return &ConsoleClientMock_DetachService_Call{Call: _e.mock.On("DetachService", serviceId)}
+}
+
+func (_c *ConsoleClientMock_DetachService_Call) Run(run func(serviceId string)) *ConsoleClientMock_DetachService_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_DetachService_Call) Return(_a0 error) *ConsoleClientMock_DetachService_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ConsoleClientMock_DetachService_Call) RunAndReturn(run func(string) error) *ConsoleClientMock_DetachService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachStack provides a mock function with given fields: ctx, id
+func (_m *ConsoleClientMock) DetachStack(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachStack")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ConsoleClientMock_DetachStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachStack'
+type ConsoleClientMock_DetachStack_Call struct {
+	*mock.Call
+}
+
+// DetachStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ConsoleClientMock_Expecter) DetachStack(ctx interface{}, id interface{}) *ConsoleClientMock_DetachStack_Call {
+	return &ConsoleClientMock_DetachStack_Call{Call: _e.mock.On("DetachStack", ctx, id)}
+}
+
+func (_c *ConsoleClientMock_DetachStack_Call) Run(run func(ctx context.Context, id string)) *ConsoleClientMock_DetachStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_DetachStack_Call) Return(_a0 error) *ConsoleClientMock_DetachStack_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ConsoleClientMock_DetachStack_Call) RunAndReturn(run func(context.Context, string) error) *ConsoleClientMock_DetachStack_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2563,6 +2820,65 @@ func (_c *ConsoleClientMock_GetServices_Call) RunAndReturn(run func() ([]*gqlcli
 	return _c
 }
 
+// GetStack provides a mock function with given fields: ctx, id
+func (_m *ConsoleClientMock) GetStack(ctx context.Context, id string) (*gqlclient.InfrastructureStackFragment, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStack")
+	}
+
+	var r0 *gqlclient.InfrastructureStackFragment
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*gqlclient.InfrastructureStackFragment, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *gqlclient.InfrastructureStackFragment); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gqlclient.InfrastructureStackFragment)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConsoleClientMock_GetStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStack'
+type ConsoleClientMock_GetStack_Call struct {
+	*mock.Call
+}
+
+// GetStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ConsoleClientMock_Expecter) GetStack(ctx interface{}, id interface{}) *ConsoleClientMock_GetStack_Call {
+	return &ConsoleClientMock_GetStack_Call{Call: _e.mock.On("GetStack", ctx, id)}
+}
+
+func (_c *ConsoleClientMock_GetStack_Call) Run(run func(ctx context.Context, id string)) *ConsoleClientMock_GetStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_GetStack_Call) Return(_a0 *gqlclient.InfrastructureStackFragment, _a1 error) *ConsoleClientMock_GetStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ConsoleClientMock_GetStack_Call) RunAndReturn(run func(context.Context, string) (*gqlclient.InfrastructureStackFragment, error)) *ConsoleClientMock_GetStack_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUser provides a mock function with given fields: email
 func (_m *ConsoleClientMock) GetUser(email string) (*gqlclient.UserFragment, error) {
 	ret := _m.Called(email)
@@ -2668,7 +2984,7 @@ func (_c *ConsoleClientMock_IsClusterDeleting_Call) RunAndReturn(run func(*strin
 }
 
 // IsClusterExisting provides a mock function with given fields: id
-func (_m *ConsoleClientMock) IsClusterExisting(id *string) bool {
+func (_m *ConsoleClientMock) IsClusterExisting(id *string) (bool, error) {
 	ret := _m.Called(id)
 
 	if len(ret) == 0 {
@@ -2676,13 +2992,23 @@ func (_m *ConsoleClientMock) IsClusterExisting(id *string) bool {
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*string) (bool, error)); ok {
+		return rf(id)
+	}
 	if rf, ok := ret.Get(0).(func(*string) bool); ok {
 		r0 = rf(id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsClusterExisting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsClusterExisting'
@@ -2703,18 +3029,18 @@ func (_c *ConsoleClientMock_IsClusterExisting_Call) Run(run func(id *string)) *C
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsClusterExisting_Call) Return(_a0 bool) *ConsoleClientMock_IsClusterExisting_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsClusterExisting_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsClusterExisting_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsClusterExisting_Call) RunAndReturn(run func(*string) bool) *ConsoleClientMock_IsClusterExisting_Call {
+func (_c *ConsoleClientMock_IsClusterExisting_Call) RunAndReturn(run func(*string) (bool, error)) *ConsoleClientMock_IsClusterExisting_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsClusterRestoreExisting provides a mock function with given fields: ctx, id
-func (_m *ConsoleClientMock) IsClusterRestoreExisting(ctx context.Context, id string) bool {
+func (_m *ConsoleClientMock) IsClusterRestoreExisting(ctx context.Context, id string) (bool, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -2722,13 +3048,23 @@ func (_m *ConsoleClientMock) IsClusterRestoreExisting(ctx context.Context, id st
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsClusterRestoreExisting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsClusterRestoreExisting'
@@ -2750,18 +3086,18 @@ func (_c *ConsoleClientMock_IsClusterRestoreExisting_Call) Run(run func(ctx cont
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsClusterRestoreExisting_Call) Return(_a0 bool) *ConsoleClientMock_IsClusterRestoreExisting_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsClusterRestoreExisting_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsClusterRestoreExisting_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsClusterRestoreExisting_Call) RunAndReturn(run func(context.Context, string) bool) *ConsoleClientMock_IsClusterRestoreExisting_Call {
+func (_c *ConsoleClientMock_IsClusterRestoreExisting_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *ConsoleClientMock_IsClusterRestoreExisting_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsPipelineExisting provides a mock function with given fields: id
-func (_m *ConsoleClientMock) IsPipelineExisting(id string) bool {
+func (_m *ConsoleClientMock) IsPipelineExisting(id string) (bool, error) {
 	ret := _m.Called(id)
 
 	if len(ret) == 0 {
@@ -2769,13 +3105,23 @@ func (_m *ConsoleClientMock) IsPipelineExisting(id string) bool {
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(id)
+	}
 	if rf, ok := ret.Get(0).(func(string) bool); ok {
 		r0 = rf(id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsPipelineExisting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPipelineExisting'
@@ -2796,18 +3142,18 @@ func (_c *ConsoleClientMock_IsPipelineExisting_Call) Run(run func(id string)) *C
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPipelineExisting_Call) Return(_a0 bool) *ConsoleClientMock_IsPipelineExisting_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsPipelineExisting_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsPipelineExisting_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPipelineExisting_Call) RunAndReturn(run func(string) bool) *ConsoleClientMock_IsPipelineExisting_Call {
+func (_c *ConsoleClientMock_IsPipelineExisting_Call) RunAndReturn(run func(string) (bool, error)) *ConsoleClientMock_IsPipelineExisting_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsPrAutomationExists provides a mock function with given fields: ctx, id
-func (_m *ConsoleClientMock) IsPrAutomationExists(ctx context.Context, id string) bool {
+func (_m *ConsoleClientMock) IsPrAutomationExists(ctx context.Context, id string) (bool, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -2815,13 +3161,23 @@ func (_m *ConsoleClientMock) IsPrAutomationExists(ctx context.Context, id string
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsPrAutomationExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPrAutomationExists'
@@ -2843,18 +3199,18 @@ func (_c *ConsoleClientMock_IsPrAutomationExists_Call) Run(run func(ctx context.
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPrAutomationExists_Call) Return(_a0 bool) *ConsoleClientMock_IsPrAutomationExists_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsPrAutomationExists_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsPrAutomationExists_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPrAutomationExists_Call) RunAndReturn(run func(context.Context, string) bool) *ConsoleClientMock_IsPrAutomationExists_Call {
+func (_c *ConsoleClientMock_IsPrAutomationExists_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *ConsoleClientMock_IsPrAutomationExists_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsPrAutomationExistsByName provides a mock function with given fields: ctx, name
-func (_m *ConsoleClientMock) IsPrAutomationExistsByName(ctx context.Context, name string) bool {
+func (_m *ConsoleClientMock) IsPrAutomationExistsByName(ctx context.Context, name string) (bool, error) {
 	ret := _m.Called(ctx, name)
 
 	if len(ret) == 0 {
@@ -2862,13 +3218,23 @@ func (_m *ConsoleClientMock) IsPrAutomationExistsByName(ctx context.Context, nam
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, name)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, name)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsPrAutomationExistsByName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPrAutomationExistsByName'
@@ -2890,12 +3256,12 @@ func (_c *ConsoleClientMock_IsPrAutomationExistsByName_Call) Run(run func(ctx co
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPrAutomationExistsByName_Call) Return(_a0 bool) *ConsoleClientMock_IsPrAutomationExistsByName_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsPrAutomationExistsByName_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsPrAutomationExistsByName_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsPrAutomationExistsByName_Call) RunAndReturn(run func(context.Context, string) bool) *ConsoleClientMock_IsPrAutomationExistsByName_Call {
+func (_c *ConsoleClientMock_IsPrAutomationExistsByName_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *ConsoleClientMock_IsPrAutomationExistsByName_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2948,7 +3314,7 @@ func (_c *ConsoleClientMock_IsProviderDeleting_Call) RunAndReturn(run func(conte
 }
 
 // IsProviderExists provides a mock function with given fields: ctx, id
-func (_m *ConsoleClientMock) IsProviderExists(ctx context.Context, id string) bool {
+func (_m *ConsoleClientMock) IsProviderExists(ctx context.Context, id string) (bool, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -2956,13 +3322,23 @@ func (_m *ConsoleClientMock) IsProviderExists(ctx context.Context, id string) bo
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsProviderExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsProviderExists'
@@ -2984,18 +3360,18 @@ func (_c *ConsoleClientMock_IsProviderExists_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsProviderExists_Call) Return(_a0 bool) *ConsoleClientMock_IsProviderExists_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsProviderExists_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsProviderExists_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsProviderExists_Call) RunAndReturn(run func(context.Context, string) bool) *ConsoleClientMock_IsProviderExists_Call {
+func (_c *ConsoleClientMock_IsProviderExists_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *ConsoleClientMock_IsProviderExists_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsScmConnectionExists provides a mock function with given fields: ctx, name
-func (_m *ConsoleClientMock) IsScmConnectionExists(ctx context.Context, name string) bool {
+func (_m *ConsoleClientMock) IsScmConnectionExists(ctx context.Context, name string) (bool, error) {
 	ret := _m.Called(ctx, name)
 
 	if len(ret) == 0 {
@@ -3003,13 +3379,23 @@ func (_m *ConsoleClientMock) IsScmConnectionExists(ctx context.Context, name str
 	}
 
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, name)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, name)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ConsoleClientMock_IsScmConnectionExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsScmConnectionExists'
@@ -3031,12 +3417,12 @@ func (_c *ConsoleClientMock_IsScmConnectionExists_Call) Run(run func(ctx context
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsScmConnectionExists_Call) Return(_a0 bool) *ConsoleClientMock_IsScmConnectionExists_Call {
-	_c.Call.Return(_a0)
+func (_c *ConsoleClientMock_IsScmConnectionExists_Call) Return(_a0 bool, _a1 error) *ConsoleClientMock_IsScmConnectionExists_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsoleClientMock_IsScmConnectionExists_Call) RunAndReturn(run func(context.Context, string) bool) *ConsoleClientMock_IsScmConnectionExists_Call {
+func (_c *ConsoleClientMock_IsScmConnectionExists_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *ConsoleClientMock_IsScmConnectionExists_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3839,6 +4225,66 @@ func (_c *ConsoleClientMock_UpdateService_Call) Return(_a0 error) *ConsoleClient
 }
 
 func (_c *ConsoleClientMock_UpdateService_Call) RunAndReturn(run func(string, gqlclient.ServiceUpdateAttributes) error) *ConsoleClientMock_UpdateService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateStack provides a mock function with given fields: ctx, id, attributes
+func (_m *ConsoleClientMock) UpdateStack(ctx context.Context, id string, attributes gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error) {
+	ret := _m.Called(ctx, id, attributes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStack")
+	}
+
+	var r0 *gqlclient.InfrastructureStackFragment
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error)); ok {
+		return rf(ctx, id, attributes)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, gqlclient.StackAttributes) *gqlclient.InfrastructureStackFragment); ok {
+		r0 = rf(ctx, id, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gqlclient.InfrastructureStackFragment)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, gqlclient.StackAttributes) error); ok {
+		r1 = rf(ctx, id, attributes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConsoleClientMock_UpdateStack_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStack'
+type ConsoleClientMock_UpdateStack_Call struct {
+	*mock.Call
+}
+
+// UpdateStack is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - attributes gqlclient.StackAttributes
+func (_e *ConsoleClientMock_Expecter) UpdateStack(ctx interface{}, id interface{}, attributes interface{}) *ConsoleClientMock_UpdateStack_Call {
+	return &ConsoleClientMock_UpdateStack_Call{Call: _e.mock.On("UpdateStack", ctx, id, attributes)}
+}
+
+func (_c *ConsoleClientMock_UpdateStack_Call) Run(run func(ctx context.Context, id string, attributes gqlclient.StackAttributes)) *ConsoleClientMock_UpdateStack_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(gqlclient.StackAttributes))
+	})
+	return _c
+}
+
+func (_c *ConsoleClientMock_UpdateStack_Call) Return(_a0 *gqlclient.InfrastructureStackFragment, _a1 error) *ConsoleClientMock_UpdateStack_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ConsoleClientMock_UpdateStack_Call) RunAndReturn(run func(context.Context, string, gqlclient.StackAttributes) (*gqlclient.InfrastructureStackFragment, error)) *ConsoleClientMock_UpdateStack_Call {
 	_c.Call.Return(run)
 	return _c
 }

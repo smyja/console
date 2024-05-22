@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pluralsh/console/controller/api/v1alpha1"
 	"github.com/pluralsh/console/controller/internal/controller"
@@ -149,7 +149,7 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 		It("should successfully reconcile AWS cluster", func() {
 			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
 			fakeConsoleClient.On("GetClusterByHandle", mock.AnythingOfType("*string")).Return(nil, errors.NewNotFound(schema.GroupResource{}, awsClusterName))
-			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(false)
+			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(false, nil)
 			fakeConsoleClient.On("CreateCluster", mock.Anything).Return(&gqlclient.ClusterFragment{ID: awsClusterConsoleID}, nil)
 
 			controllerReconciler := &controller.ClusterReconciler{
@@ -192,7 +192,7 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 			})).To(Succeed())
 
 			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
-			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(true)
+			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(true, nil)
 			fakeConsoleClient.On("UpdateCluster", mock.AnythingOfType("string"), mock.Anything).Return(
 				&gqlclient.ClusterFragment{ID: awsClusterConsoleID, CurrentVersion: lo.ToPtr("1.25.6")}, nil)
 
@@ -229,11 +229,18 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 			})))
 		})
 
-		It("should successfully reconcile BYOK cluster", func() {
+		It("should successfully reconcile and update metadata od previously created AWS cluster", func() {
+			metadata := `{"a":"b"}`
+			Expect(common.MaybePatchObject(k8sClient, &v1alpha1.Cluster{
+				ObjectMeta: metav1.ObjectMeta{Name: awsClusterName, Namespace: "default"},
+			}, func(p *v1alpha1.Cluster) {
+				p.Spec.Metadata = &runtime.RawExtension{Raw: []byte(metadata)}
+			})).To(Succeed())
+
 			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
-			fakeConsoleClient.On("GetClusterByHandle", mock.AnythingOfType("*string")).Return(nil, errors.NewNotFound(schema.GroupResource{}, byokClusterName))
-			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(false)
-			fakeConsoleClient.On("CreateCluster", mock.Anything).Return(&gqlclient.ClusterFragment{ID: byokClusterConsoleID}, nil)
+			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(true, nil)
+			fakeConsoleClient.On("UpdateCluster", mock.AnythingOfType("string"), mock.Anything).Return(
+				&gqlclient.ClusterFragment{ID: awsClusterConsoleID, CurrentVersion: lo.ToPtr("1.25.6")}, nil)
 
 			controllerReconciler := &controller.ClusterReconciler{
 				Client:        k8sClient,
@@ -241,16 +248,17 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 				ConsoleClient: fakeConsoleClient,
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: byokNamespacedName})
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: awsNamespacedName})
 			Expect(err).NotTo(HaveOccurred())
 
 			cluster := &v1alpha1.Cluster{}
-			err = k8sClient.Get(ctx, byokNamespacedName, cluster)
+			err = k8sClient.Get(ctx, awsNamespacedName, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(sanitizeClusterStatus(cluster.Status)).To(Equal(sanitizeClusterStatus(v1alpha1.ClusterStatus{
+				CurrentVersion: lo.ToPtr("1.25.6"),
 				Status: v1alpha1.Status{
-					ID:  lo.ToPtr(byokClusterConsoleID),
-					SHA: lo.ToPtr("CPYLCGRGF2JWFBF3OGRHQQUSBDXW6Y4VMUDQDCQQDEA6G6CAZORQ===="),
+					ID:  lo.ToPtr(awsClusterConsoleID),
+					SHA: lo.ToPtr("IO7U7VEWAH4NIU5U2647LKOD4DZU2V3YLLRSAPXXBHXZA55KANEA===="),
 					Conditions: []metav1.Condition{
 						{
 							Type:   v1alpha1.ReadonlyConditionType.String(),
@@ -267,6 +275,44 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 			})))
 		})
 
+		It("should successfully reconcile BYOK cluster", func() {
+			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
+			fakeConsoleClient.On("GetClusterByHandle", mock.AnythingOfType("*string")).Return(nil, errors.NewNotFound(schema.GroupResource{}, byokClusterName))
+			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(false, nil)
+			fakeConsoleClient.On("CreateCluster", mock.Anything).Return(&gqlclient.ClusterFragment{ID: byokClusterConsoleID}, nil)
+
+			controllerReconciler := &controller.ClusterReconciler{
+				Client:        k8sClient,
+				Scheme:        k8sClient.Scheme(),
+				ConsoleClient: fakeConsoleClient,
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: byokNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			cluster := &v1alpha1.Cluster{}
+			err = k8sClient.Get(ctx, byokNamespacedName, cluster)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sanitizeClusterStatus(cluster.Status)).To(Equal(sanitizeClusterStatus(v1alpha1.ClusterStatus{
+				Status: v1alpha1.Status{
+					Conditions: []metav1.Condition{
+						{
+							Type:    v1alpha1.ReadonlyConditionType.String(),
+							Status:  metav1.ConditionTrue,
+							Reason:  v1alpha1.ReadonlyConditionReason.String(),
+							Message: v1alpha1.ReadonlyTrueConditionMessage.String(),
+						},
+						{
+							Type:    v1alpha1.SynchronizedConditionType.String(),
+							Status:  metav1.ConditionFalse,
+							Reason:  v1alpha1.SynchronizedConditionReasonNotFound.String(),
+							Message: "Could not find Cluster in Console API",
+						},
+					},
+				},
+			})))
+		})
+
 		It("should successfully reconcile and update previously created BYOK cluster", func() {
 			Expect(common.MaybePatch(k8sClient, &v1alpha1.Cluster{
 				ObjectMeta: metav1.ObjectMeta{Name: byokClusterName, Namespace: "default"},
@@ -275,7 +321,8 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 			})).To(Succeed())
 
 			fakeConsoleClient := mocks.NewConsoleClientMock(mocks.TestingT)
-			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(true)
+			fakeConsoleClient.On("GetClusterByHandle", mock.AnythingOfType("*string")).Return(&gqlclient.ClusterFragment{ID: byokClusterConsoleID, CurrentVersion: lo.ToPtr("1.25.6")}, nil)
+			fakeConsoleClient.On("IsClusterExisting", mock.AnythingOfType("*string")).Return(true, nil)
 			fakeConsoleClient.On("UpdateCluster", mock.AnythingOfType("string"), mock.Anything).Return(
 				&gqlclient.ClusterFragment{ID: byokClusterConsoleID, CurrentVersion: lo.ToPtr("1.25.6")}, nil)
 
@@ -299,9 +346,10 @@ var _ = Describe("Cluster Controller", Ordered, func() {
 					SHA: lo.ToPtr("CPYLCGRGF2JWFBF3OGRHQQUSBDXW6Y4VMUDQDCQQDEA6G6CAZORQ===="),
 					Conditions: []metav1.Condition{
 						{
-							Type:   v1alpha1.ReadonlyConditionType.String(),
-							Status: metav1.ConditionFalse,
-							Reason: v1alpha1.ReadonlyConditionReason.String(),
+							Type:    v1alpha1.ReadonlyConditionType.String(),
+							Status:  metav1.ConditionTrue,
+							Reason:  v1alpha1.ReadonlyConditionReason.String(),
+							Message: v1alpha1.ReadonlyTrueConditionMessage.String(),
 						},
 						{
 							Type:   v1alpha1.SynchronizedConditionType.String(),

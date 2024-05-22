@@ -80,6 +80,34 @@ defmodule Console.Deployments.ServicesTest do
       assert_receive {:event, %PubSub.ServiceCreated{item: ^service}}
     end
 
+    test "it can create a kustomize-based service and initial revision" do
+      cluster = insert(:cluster)
+      user = admin_user()
+
+      {:ok, service} = Services.create_service(%{
+        name: "my-service",
+        namespace: "my-service",
+        version: "0.0.1",
+        kustomize: %{path: "path"},
+        configuration: [%{name: "name", value: "value"}]
+      }, cluster.id, user)
+
+      assert service.name == "my-service"
+      assert service.namespace == "my-service"
+      assert service.version == "0.0.1"
+      assert service.cluster_id == cluster.id
+      assert service.kustomize.path == "path"
+      assert service.status == :stale
+
+      %{revision: revision} = Console.Repo.preload(service, [:revision])
+      assert revision.kustomize.path == service.kustomize.path
+
+      {:ok, secrets} = Services.configuration(service)
+      assert secrets["name"] == "value"
+
+      assert_receive {:event, %PubSub.ServiceCreated{item: ^service}}
+    end
+
     test "you cannot create a service in a deleting cluster" do
       cluster = insert(:cluster, deleted_at: Timex.now())
       user = admin_user()
@@ -152,6 +180,7 @@ defmodule Console.Deployments.ServicesTest do
           ref: "master",
           folder: "k8s"
         },
+        dependencies: [%{name: "deploy-operator"}],
         configuration: [%{name: "name", value: "other-value"}, %{name: "name2", value: "value"}]
       }, service.id, user)
 
@@ -166,6 +195,9 @@ defmodule Console.Deployments.ServicesTest do
       assert updated.git.folder == "k8s"
       assert updated.revision_id
       assert updated.status == :stale
+
+      [dependency] = updated.dependencies
+      assert dependency.name == "deploy-operator"
 
       %{revision: revision} = Console.Repo.preload(updated, [:revision])
       assert revision.git.ref == updated.git.ref
@@ -687,6 +719,13 @@ defmodule Console.Deployments.ServicesTest do
   describe "#update_components/2" do
     test "it will update the k8s components w/in the service" do
       service = insert(:service)
+      dependencies = for _ <- 1..3 do
+        insert(:service_dependency, service: build(:service, cluster: service.cluster), name: service.name)
+      end
+      ignore = [
+        insert(:service_dependency, name: service.name),
+        insert(:service_dependency, service: build(:service, cluster: service.cluster))
+      ]
 
       {:ok, service} = Services.update_components(%{
         errors: [],
@@ -726,6 +765,14 @@ defmodule Console.Deployments.ServicesTest do
       svc = refetch(service)
       assert svc.status == :healthy
       assert svc.component_status == "2 / 2"
+
+      for dep <- dependencies do
+        assert refetch(dep).status == :healthy
+      end
+
+      for dep <- ignore do
+        refute refetch(dep).status == :healthy
+      end
 
       assert_receive {:event, %PubSub.ServiceComponentsUpdated{item: ^service}}
 
@@ -1095,6 +1142,23 @@ defmodule Console.Deployments.ServicesAsyncTest do
       assert content["Chart.yaml"]
 
       assert refetch(svc).sha == "sha"
+    end
+
+    test "it can fetch a chart for a helm service by url" do
+      svc = insert(:service,
+        helm: %{
+          url: "https://stefanprodan.github.io/podinfo",
+          chart: "podinfo",
+          version: "6.5.2"
+        }
+      )
+
+      {:ok, f} = Services.tarstream(svc)
+      {:ok, content} = Tar.tar_stream(f)
+      content = Map.new(content)
+      assert content["Chart.yaml"]
+
+      assert refetch(svc).sha == "98eeab2a630dbe6605266b635d0dfa0ce595bfe019b843f628c775ed1c588838"
     end
 
     test "it can splice in a new values.yaml.tpl" do

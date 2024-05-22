@@ -41,6 +41,7 @@ import { DeleteGlobalService } from './DeleteGlobalService'
 import { ServiceSettings } from './ServiceSettings'
 import { ServiceUpdateHelmValues } from './ServiceUpdateHelmValues'
 import { DetachService } from './DetachService'
+import { ServicesResyncDeployment } from './ServicesResyncDeployment'
 
 const columnHelper = createColumnHelper<Edge<ServiceDeploymentsRowFragment>>()
 
@@ -95,7 +96,7 @@ export const ColCluster = columnHelper.accessor(
 export const ColRepo = columnHelper.accessor(({ node }) => node, {
   id: 'repository',
   header: 'Repository',
-  meta: { truncate: true, gridTemplate: 'minmax(180px,1fr)' },
+  meta: { truncate: true, gridTemplate: 'minmax(180px,0.65fr)' },
   cell: ({ getValue }) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const theme = useTheme()
@@ -176,6 +177,7 @@ export const ColLastActivity = columnHelper.accessor(
 export const ColStatus = columnHelper.accessor(({ node }) => node?.status, {
   id: 'status',
   header: 'Status',
+  meta: { gridTemplate: 'auto' },
   enableColumnFilter: true,
   filterFn: 'equalsString',
   cell: ({
@@ -189,11 +191,11 @@ export const ColStatus = columnHelper.accessor(({ node }) => node?.status, {
     return (
       <div
         css={{
-          minWidth: 164,
           display: 'flex',
           flexWrap: 'wrap',
           gap: theme.spacing.xxsmall,
           alignItems: 'center',
+          whiteSpace: 'nowrap',
         }}
       >
         <ServiceStatusChip
@@ -282,6 +284,7 @@ export const ColActions = columnHelper.accessor(({ node }) => node?.id, {
             refetch={refetch}
             serviceDeployment={serviceDeployment}
           />
+          <ServicesResyncDeployment serviceDeployment={serviceDeployment} />
           <MoreMenu onSelectionChange={(newKey) => setMenuKey(newKey)}>
             {!node?.globalService?.id && (
               <ListBoxItem

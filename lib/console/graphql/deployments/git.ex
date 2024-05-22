@@ -125,6 +125,24 @@ defmodule Console.GraphQl.Deployments.Git do
     field :cluster,    :namespaced_name
   end
 
+  @desc "attributes for a pull request pointer record"
+  input_object :pull_request_update_attributes do
+    field :title,      non_null(:string)
+    field :labels,     list_of(:string)
+    field :status,     non_null(:pr_status)
+    field :service_id, :id
+    field :cluster_id, :id
+    field :service,    :namespaced_name
+    field :cluster,    :namespaced_name
+  end
+
+  @desc "The attributes to configure a new webhook for a SCM provider"
+  input_object :scm_webhook_attributes do
+    field :hmac,  non_null(:string), description: "the secret token for authenticating this webhook via hmac signature"
+    field :type,  non_null(:scm_type), description: "the type of webhook to create"
+    field :owner, non_null(:string), description: "the owner for this webhook in your SCM, eg a github org or gitlab group"
+  end
+
   @desc "a git repository available for deployments"
   object :git_repository do
     field :id,           non_null(:id), description: "internal id of this repository"
@@ -401,6 +419,7 @@ defmodule Console.GraphQl.Deployments.Git do
       middleware Authenticated
       arg :cluster_id, :id
       arg :service_id, :id
+      arg :open,       :boolean
       arg :q,          :string
 
       resolve &Deployments.list_pull_requests/2
@@ -472,6 +491,14 @@ defmodule Console.GraphQl.Deployments.Git do
       safe_resolve &Deployments.create_webhook_for_connection/2
     end
 
+    @desc "creates a webhook reference in our system but doesn't attempt to create it in your upstream provider"
+    field :create_scm_webhook_pointer, :scm_webhook do
+      middleware Authenticated
+      arg :attributes, non_null(:scm_webhook_attributes)
+
+      resolve &Deployments.create_webhook/2
+    end
+
     field :create_pr_automation, :pr_automation do
       middleware Authenticated
       arg :attributes, non_null(:pr_automation_attributes)
@@ -529,6 +556,21 @@ defmodule Console.GraphQl.Deployments.Git do
       arg :attributes, :pull_request_attributes
 
       safe_resolve &Deployments.create_pr/2
+    end
+
+    field :update_pull_request, :pull_request do
+      middleware Authenticated
+      arg :id,         non_null(:id)
+      arg :attributes, :pull_request_update_attributes
+
+      safe_resolve &Deployments.update_pr/2
+    end
+
+    field :delete_pull_request, :pull_request do
+      middleware Authenticated
+      arg :id, non_null(:id)
+
+      safe_resolve &Deployments.delete_pr/2
     end
   end
 end

@@ -18,8 +18,9 @@ import {
   CD_DEFAULT_ABS_PATH,
   CD_DEFAULT_REL_PATH,
   CLUSTERS_REL_PATH,
+  GLOBAL_SERVICES_REL_PATH,
+  NAMESPACES_REL_PATH,
   PIPELINES_REL_PATH,
-  PROVIDERS_REL_PATH,
   REPOS_REL_PATH,
   SERVICES_REL_PATH,
 } from 'routes/cdRoutesConsts'
@@ -48,7 +49,7 @@ export const useSetPageScrollable = (scrollable: boolean) => {
 
   if (!ctx) {
     console.warn(
-      'useSetPageScrollable() must be used within a PageScrollContext'
+      'useSetPageScrollable() must be used within a PageScrollableContext'
     )
   }
   const { setScrollable } = ctx || {}
@@ -77,7 +78,9 @@ export const useSetPageHeaderContent = (headerContent?: ReactNode) => {
   const ctx = useContext(PageHeaderContext)
 
   if (!ctx) {
-    console.warn('useSetPageHeaderContent() must be used within a CDContext')
+    console.warn(
+      'useSetPageHeaderContent() must be used within a PageHeaderContext'
+    )
   }
   const { setHeaderContent } = ctx || {}
 
@@ -95,8 +98,7 @@ export const CD_BASE_CRUMBS = [
 ] as const satisfies readonly Breadcrumb[]
 
 function useCurrentTab() {
-  const pathMatch = useMatch(`${CD_ABS_PATH}/:tab*`)
-  // @ts-expect-error
+  const pathMatch = useMatch(`${CD_ABS_PATH}/:tab/*`)
   const tab = pathMatch?.params?.tab || ''
 
   return tab
@@ -133,6 +135,11 @@ function useDirectory({ filtered = true }: { filtered?: boolean } = {}) {
         enabled: personaConfiguration?.all || config?.services,
       },
       {
+        path: GLOBAL_SERVICES_REL_PATH,
+        label: 'Global Services',
+        enabled: personaConfiguration?.all || config?.services,
+      },
+      {
         path: REPOS_REL_PATH,
         label: 'Repositories',
         enabled: personaConfiguration?.all || config?.repositories,
@@ -143,9 +150,9 @@ function useDirectory({ filtered = true }: { filtered?: boolean } = {}) {
         enabled: personaConfiguration?.all || config?.pipelines,
       },
       {
-        path: PROVIDERS_REL_PATH,
-        label: 'Providers',
-        enabled: personaConfiguration?.all || config?.providers,
+        path: NAMESPACES_REL_PATH,
+        label: 'Namespaces',
+        enabled: personaConfiguration?.all || config?.services,
       },
       {
         path: ADDONS_REL_PATH,

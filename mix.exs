@@ -46,7 +46,7 @@ defmodule Console.MixProject do
       lockfile: "mix.lock",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:gettext] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
@@ -73,6 +73,7 @@ defmodule Console.MixProject do
       {:libcluster, "~> 3.2"},
       {:horde, "~> 0.8"},
       {:tentacat, "~> 2.0"},
+      {:absinthe_client, "~> 0.1.0"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix, "~> 1.5"},
       {:phoenix_view, "~> 2.0"},
@@ -102,7 +103,9 @@ defmodule Console.MixProject do
       {:dataloader, "~> 1.0.6"},
       {:cors_plug, "~> 2.0"},
       {:timex, "~> 3.7"},
-      {:quantum, "~> 2.3"},
+      {:quantum, "~> 3.0"},
+      {:swarm, "~> 3.0"},
+      {:bandit, "~> 1.0"},
       {:yaml_elixir, "~> 2.9"},
       {:poison, "~> 5.0", override: true},
       {:ets, "~> 0.9"},
@@ -134,7 +137,8 @@ defmodule Console.MixProject do
 
       # if using the Mint adapter:
       {:castore, "~> 0.1.7"},
-      {:mint, "~> 1.1.0"},
+      {:req, "~> 0.4.14", override: true},
+      {:mint, "~> 1.4.0", override: true},
       {:phoenix_client, "~> 0.11", git: "https://github.com/michaeljguarino/phoenix_client.git", branch: "mguarino/channel-listen"},
       {:botanist, "~> 0.1.0", git: "https://github.com/michaeljguarino/botanist.git", branch: "ecto3"},
       {:elixpath, "~> 0.1.1", git: "https://github.com/mtannaan/elixpath.git"},

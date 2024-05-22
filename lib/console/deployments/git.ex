@@ -14,13 +14,15 @@ defmodule Console.Deployments.Git do
     ScmWebhook,
     PrAutomation,
     PullRequest,
-    DependencyManagementService
+    DependencyManagementService,
+    HelmRepository
   }
 
   @cache Console.conf(:cache_adapter)
   @ttl :timer.minutes(30)
 
   @type repository_resp :: {:ok, GitRepository.t} | Console.error
+  @type helm_resp :: {:ok, HelmRepository.t} | Console.error
   @type connection_resp :: {:ok, ScmConnection.t} | Console.error
   @type webhook_resp :: {:ok, ScmWebhook.t} | Console.error
   @type automation_resp :: {:ok, PrAutomation.t} | Console.error
@@ -29,6 +31,8 @@ defmodule Console.Deployments.Git do
   def get_repository(id), do: Repo.get(GitRepository, id)
 
   def get_repository!(id), do: Repo.get!(GitRepository, id)
+
+  def get_helm_repository(url), do: Repo.get_by(HelmRepository, url: url)
 
   def get_by_url!(url), do: Repo.get_by!(GitRepository, url: url)
 
@@ -100,6 +104,7 @@ defmodule Console.Deployments.Git do
   def delete_repository(id, %User{} = user) do
     try do
       get_repository!(id)
+      |> GitRepository.changeset()
       |> allow(user, :git)
       |> when_ok(:delete)
       |> notify(:delete, user)
@@ -149,7 +154,7 @@ defmodule Console.Deployments.Git do
     |> add_operation(:hook, fn _ ->
       %ScmWebhook{type: conn.type}
       |> ScmWebhook.changeset(%{owner: owner})
-      |> Repo.insert_or_update()
+      |> Repo.insert()
     end)
     |> add_operation(:remote, fn %{hook: hook} ->
       case Dispatcher.webhook(conn, hook) do
@@ -158,6 +163,17 @@ defmodule Console.Deployments.Git do
       end
     end)
     |> execute(extract: :hook)
+  end
+
+  @doc """
+  Creates a new webhook for your console instance
+  """
+  @spec create_webhook(map, User.t) :: webhook_resp
+  def create_webhook(attrs, %User{} = user) do
+    %ScmWebhook{}
+    |> ScmWebhook.changeset(attrs)
+    |> allow(user, :write)
+    |> when_ok(:insert)
   end
 
   @doc """
@@ -281,13 +297,50 @@ defmodule Console.Deployments.Git do
   @doc """
   Updates attributes for a pr in response to a scm webhook invocation
   """
-  @spec update_pull_request(map, binary) :: pull_request_resp
-  def update_pull_request(attrs, url) do
-    case Repo.get_by(PullRequest, url: url) do
-      %PullRequest{} = pr -> PullRequest.changeset(pr, attrs) |> Repo.update()
+  @spec upsert_pull_request(map, binary) :: pull_request_resp
+  def upsert_pull_request(attrs, url) do
+    case {attrs, Repo.get_by(PullRequest, url: url)} do
+      {attrs, %PullRequest{} = pr} ->
+        PullRequest.changeset(pr, attrs)
+        |> Repo.update()
+        |> notify(:update)
+      {%{stack_id: stack_id} = attrs, nil} when is_binary(stack_id) ->
+        create_pr(attrs, url)
+      {%{cluster_id: cluster_id} = attrs, nil} when is_binary(cluster_id) ->
+        create_pr(attrs, url)
+      {%{service_id: service_id} = attrs, nil} when is_binary(service_id) ->
+        create_pr(attrs, url)
       _ -> {:error, :not_found}
     end
-    |> notify(:update)
+  end
+
+  defp create_pr(attrs, url) do
+    %PullRequest{url: url}
+    |> PullRequest.changeset(attrs)
+    |> Repo.insert()
+    |> notify(:create)
+  end
+
+  @doc """
+  Deletes this reference to a pull request from the db
+  """
+  @spec delete_pr(binary, User.t) :: pull_request_resp
+  def delete_pr(id, %User{} = user) do
+    Repo.get(PullRequest, id)
+    |> PullRequest.changeset()
+    |> allow(user, :write)
+    |> when_ok(:delete)
+  end
+
+  @doc """
+  Updates this pr reference in the db
+  """
+  @spec update_pr(map, binary, User.t) :: pull_request_resp
+  def update_pr(attrs, id, %User{} = user) do
+    Repo.get(PullRequest, id)
+    |> PullRequest.changeset(attrs)
+    |> allow(user, :write)
+    |> when_ok(:update)
   end
 
   @doc """
@@ -299,6 +352,16 @@ defmodule Console.Deployments.Git do
       {:ok, %{items: items}} -> {:ok, items}
       _ -> {:ok, []}
     end
+  end
+
+  @spec upsert_helm_repository(binary) :: helm_resp
+  def upsert_helm_repository(url) do
+    case Console.Repo.get_by(HelmRepository, url: url) do
+      %HelmRepository{} = repo -> repo
+      nil -> %HelmRepository{url: url}
+    end
+    |> HelmRepository.changeset()
+    |> Console.Repo.insert_or_update()
   end
 
   @doc """

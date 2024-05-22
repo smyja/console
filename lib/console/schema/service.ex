@@ -15,7 +15,9 @@ defmodule Console.Schema.Service do
     DiffNormalizer,
     Metadata,
     StageService,
-    ServiceContextBinding
+    ServiceContextBinding,
+    NamespaceInstance,
+    ServiceDependency
   }
 
   defenum Promotion, ignore: 0, proceed: 1, rollback: 2
@@ -27,49 +29,65 @@ defmodule Console.Schema.Service do
     embedded_schema do
       field :ref,    :string
       field :folder, :string
+      field :files,  {:array, :string}
     end
 
     def changeset(model, attrs \\ %{}) do
       model
-      |> cast(attrs, ~w(ref folder)a)
+      |> cast(attrs, ~w(ref folder files)a)
       |> validate_required(~w(ref folder)a)
     end
   end
 
   defmodule Helm do
     use Piazza.Ecto.Schema
+    alias Console.Schema.{NamespacedName, Service.Git}
 
     embedded_schema do
-      field :values,       Piazza.Ecto.EncryptedString
-      field :chart,        :string
-      field :version,      :string
-      field :values_files, {:array, :string}
+      field :values,        Piazza.Ecto.EncryptedString
+      field :chart,         :string
+      field :version,       :string
+      field :release,       :string
+      field :url,           :string
+      field :values_files,  {:array, :string}
+      field :repository_id, :binary_id
 
       embeds_many :set, HelmValue, on_replace: :delete do
         field :name, :string
         field :value, Piazza.Ecto.EncryptedString
       end
 
-      embeds_one :repository, Console.Schema.NamespacedName, on_replace: :update
+      embeds_one :git,        Git, on_replace: :update
+      embeds_one :repository, NamespacedName, on_replace: :update
     end
 
     def changeset(model, attrs \\ %{}) do
       model
-      |> cast(attrs, ~w(values chart version values_files)a)
+      |> cast(attrs, ~w(values release chart version repository_id values_files)a)
       |> cast_embed(:repository)
-      |> cast_embed(:set)
+      |> cast_embed(:set, with: &set_changeset/2)
+      |> cast_embed(:git)
       |> validate_change(:values_files, fn :values_files, files ->
         case Enum.member?(files, "values.yaml") do
           true -> [values_files: "explicitly wiring in values.yaml can corrupt helm charts, try a different filename"]
           _ -> []
         end
       end)
+      |> ensure_chart()
     end
 
     def set_changeset(model, attrs \\ %{}) do
       model
       |> cast(attrs, ~w(name value)a)
       |> validate_required(~w(name value)a)
+      |> ensure_chart()
+    end
+
+    defp ensure_chart(cs) do
+      case get_field(cs, :repository) do
+        %{} -> validate_required(cs, ~w(chart version)a)
+        _ -> cs
+      end
     end
   end
 
@@ -92,6 +110,8 @@ defmodule Console.Schema.Service do
     field :dry_run,          :boolean
     field :interval,         :string
 
+    field :norevise, :boolean, virtual: true, default: false
+
     embeds_one :git,  Git,  on_replace: :update
     embeds_one :helm, Helm, on_replace: :update
 
@@ -110,13 +130,17 @@ defmodule Console.Schema.Service do
     belongs_to :repository, GitRepository
     belongs_to :owner,      GlobalService
 
-    has_one :reference_cluster, Cluster
-    has_one :provider,          ClusterProvider
-    has_one :global_service,    GlobalService
+    has_one :reference_cluster,  Cluster
+    has_one :provider,           ClusterProvider
+    has_one :global_service,     GlobalService
+    has_one :namespace_instance, NamespaceInstance
 
     has_many :errors, ServiceError, on_replace: :delete
     has_many :components, ServiceComponent, on_replace: :delete
     has_many :context_bindings, ServiceContextBinding, on_replace: :delete
+    has_many :dependencies, ServiceDependency,
+      foreign_key: :service_id,
+      on_replace: :delete
     has_many :api_deprecations, through: [:components, :api_deprecations]
     has_many :contexts, through: [:context_bindings, :context]
     has_many :stage_services, StageService
@@ -146,6 +170,13 @@ defmodule Console.Schema.Service do
 
   def agent(query \\ __MODULE__) do
     from(s in query, where: s.name == "deploy-operator")
+  end
+
+  def errored(query \\ __MODULE__) do
+    from(s in query,
+      join: e in assoc(s, :errors),
+      distinct: true
+    )
   end
 
   def for_user(query \\ __MODULE__, %User{} = user) do
@@ -181,6 +212,17 @@ defmodule Console.Schema.Service do
 
   def for_owner(query \\ __MODULE__, owner_id) do
     from(s in query, where: s.owner_id == ^owner_id)
+  end
+
+  def globalized(query \\ __MODULE__) do
+    from(s in query, where: not is_nil(s.owner_id))
+  end
+
+  def for_namespace(query \\ __MODULE__, ns_id) do
+    from(s in query,
+      join: ni in assoc(s, :namespace_instance),
+      where: ni.namespace_id == ^ns_id
+    )
   end
 
   def for_status(query \\ __MODULE__, status) do
@@ -222,9 +264,11 @@ defmodule Console.Schema.Service do
     |> cast_assoc(:read_bindings)
     |> cast_assoc(:write_bindings)
     |> cast_assoc(:context_bindings)
+    |> cast_assoc(:dependencies)
     |> foreign_key_constraint(:cluster_id)
     |> foreign_key_constraint(:owner_id)
     |> foreign_key_constraint(:repository_id)
+    |> foreign_key_constraint(:global_service, name: :global_services, match: :prefix, message: "Cannot delete due to existing global services bound to this cluster")
     |> unique_constraint([:cluster_id, :name], message: "there is already a service with that name for this cluster")
     |> unique_constraint([:cluster_id, :owner_id])
     |> put_new_change(:write_policy_id, &Ecto.UUID.generate/0)

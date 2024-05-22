@@ -218,4 +218,78 @@ defmodule Console.GraphQl.Deployments.GitMutationsTest do
       assert pr["url"] == "https://github.com/some/repo"
     end
   end
+
+  describe "updatePullRequest" do
+    test "it will update an existing pr" do
+      pr = insert(:pull_request)
+
+      {:ok, %{data: %{"updatePullRequest" => updated}}} = run_query("""
+        mutation Update($id: ID!, $attrs: PullRequestUpdateAttributes!) {
+          updatePullRequest(id: $id, attributes: $attrs) {
+            id
+            status
+            title
+          }
+        }
+      """, %{"id" => pr.id, "attrs" => %{"status" => "MERGED", "title" => "new title"}}, %{current_user: admin_user()})
+
+      assert updated["id"] == pr.id
+      assert updated["status"] == "MERGED"
+      assert updated["title"] == "new title"
+    end
+  end
+
+  describe "deletePullRequest" do
+    test "it will update an existing pr" do
+      pr = insert(:pull_request)
+
+      {:ok, %{data: %{"deletePullRequest" => deleted}}} = run_query("""
+        mutation Update($id: ID!) {
+          deletePullRequest(id: $id) { id }
+        }
+      """, %{"id" => pr.id}, %{current_user: admin_user()})
+
+      assert deleted["id"] == pr.id
+      refute refetch(pr)
+    end
+  end
+
+  describe "createScmWebhookPointer" do
+    test "admins can create webhook pointers" do
+      {:ok, %{data: %{"createScmWebhookPointer" => hook}}} = run_query("""
+        mutation Create($attrs: ScmWebhookAttributes!) {
+          createScmWebhookPointer(attributes: $attrs) {
+            type
+            url
+          }
+        }
+      """, %{
+        "attrs" => %{
+          "owner" => "pluralsh",
+          "hmac" => "super secret",
+          "type" => "GITHUB"
+        }
+      }, %{current_user: admin_user()})
+
+      assert hook["url"]
+      assert hook["type"] == "GITHUB"
+    end
+
+    test "nonadmins cannot create webhook pointers" do
+      {:ok, %{errors: [_ | _]}} = run_query("""
+        mutation Create($attrs: ScmWebhookAttributes!) {
+          createScmWebhookPointer(attributes: $attrs) {
+            type
+            url
+          }
+        }
+      """, %{
+        "attrs" => %{
+          "owner" => "pluralsh",
+          "hmac" => "super secret",
+          "type" => "GITHUB"
+        }
+      }, %{current_user: insert(:user)})
+    end
+  end
 end

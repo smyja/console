@@ -5,7 +5,7 @@ defprotocol Console.GraphQl.Exception do
 end
 
 defimpl Console.GraphQl.Exception, for: Any do
-  def error(_), do: {500, "unknown error"}
+  def error(_), do: {500, "unknown error (check the logs for more details)"}
 end
 
 defimpl Console.GraphQl.Exception, for: Ecto.NoResultsError do
@@ -13,5 +13,9 @@ defimpl Console.GraphQl.Exception, for: Ecto.NoResultsError do
 end
 
 defimpl Console.GraphQl.Exception, for: Ecto.CastError do
-  def error(_), do: {400, "invalid input"}
+  def error(_), do: {400, "could not find resource"}
+end
+
+defimpl Console.GraphQl.Exception, for: Ecto.Query.CastError do
+  def error(_), do: {404, "could not find resource"}
 end

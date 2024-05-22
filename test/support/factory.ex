@@ -511,6 +511,85 @@ defmodule Console.Factory do
     }
   end
 
+  def stack_factory do
+    %Schema.Stack{
+      name: sequence(:stacks, & "stack-#{&1}"),
+      status: :queued,
+      type: :terraform,
+      write_policy_id: Ecto.UUID.generate(),
+      read_policy_id: Ecto.UUID.generate(),
+      git: %{ref: "main", folder: "terraform"},
+      repository: build(:git_repository),
+      cluster: build(:cluster),
+    }
+  end
+
+  def stack_run_factory do
+    %Schema.StackRun{
+      id: Piazza.Ecto.UUID.generate_monotonic(),
+      status: :queued,
+      type: :terraform,
+      dry_run: false,
+      git: %{ref: "main", folder: "terraform"},
+      repository: build(:git_repository),
+      cluster: build(:cluster),
+      stack: build(:stack),
+    }
+  end
+
+  def stack_state_factory do
+    %Schema.StackState{
+      plan: "some plan"
+    }
+  end
+
+  def run_step_factory do
+    %Schema.RunStep{
+      name: sequence(:run_step, & "step-#{&1}"),
+      status: :pending,
+      stage: :plan,
+      cmd: "terraform",
+      args: ["plan"],
+      index: 0,
+      run: build(:stack_run)
+    }
+  end
+
+  def run_log_factory do
+    %Schema.RunLog{
+      logs: "test logs",
+      step: build(:run_step)
+    }
+  end
+
+  def service_template_factory do
+    %Schema.ServiceTemplate{
+      name: sequence(:service_template, & "tpl-#{&1}")
+    }
+  end
+
+  def observability_provider_factory do
+    %Schema.ObservabilityProvider{
+      type: :datadog,
+      name: sequence(:obsv_provider, & "obs-#{&1}"),
+      credentials: %{datadog: %{api_key: "api", app_key: "app"}}
+    }
+  end
+
+  def service_dependency_factory do
+    %Schema.ServiceDependency{
+      name: sequence(:svc_dep, & "service-#{&1}"),
+      service: build(:service)
+    }
+  end
+
+  def observable_metric_factory do
+    %Schema.ObservableMetric{
+      identifier: sequence(:obsv_metric, & "obs-metric-#{&1}"),
+      provider: build(:observability_provider)
+    }
+  end
+
   def setup_rbac(user, repos \\ ["*"], perms) do
     role = insert(:role, repositories: repos, permissions: Map.new(perms))
     insert(:role_binding, role: role, user: user)

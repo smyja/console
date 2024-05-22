@@ -102,8 +102,17 @@ defmodule Console.GraphQl.Resolvers.Deployments.Git do
   def create_pr(%{attributes: attrs}, %{context: %{current_user: user}}),
     do: Git.create_pull_request(attrs, user)
 
+  def update_pr(%{attributes: attrs, id: id}, %{context: %{current_user: user}}),
+    do: Git.update_pr(attrs, id, user)
+
+  def delete_pr(%{id: id}, %{context: %{current_user: user}}),
+    do: Git.delete_pr(id, user)
+
   def create_webhook_for_connection(%{owner: owner, connection_id: conn_id}, %{context: %{current_user: user}}),
     do: Git.create_webhook_for_connection(owner, conn_id, user)
+
+  def create_webhook(%{attributes: attrs}, %{context: %{current_user: user}}),
+    do: Git.create_webhook(attrs, user)
 
   def setup_renovate(%{connection_id: id, repos: repos} = args, %{context: %{current_user: user}}),
     do: Git.setup_renovate(args, id, repos, user)
@@ -115,6 +124,8 @@ defmodule Console.GraphQl.Resolvers.Deployments.Git do
     Enum.reduce(args, query, fn
       {:cluster_id, cid}, q -> PullRequest.for_cluster(q, cid)
       {:service_id, sid}, q -> PullRequest.for_service(q, sid)
+      {:open, true}, q -> PullRequest.open(q)
+      {:q, search}, q -> PullRequest.search(q, search)
       _, q -> q
     end)
   end

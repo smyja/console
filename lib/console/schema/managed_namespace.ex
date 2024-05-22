@@ -1,6 +1,6 @@
 defmodule Console.Schema.ManagedNamespace do
   use Piazza.Ecto.Schema
-  alias Console.Schema.{NamespaceCluster, NamespaceInstance, Cluster, ServiceTemplate}
+  alias Console.Schema.{NamespaceCluster, NamespaceInstance, GlobalService, Cluster, ServiceTemplate}
 
   defmodule Target do
     use Piazza.Ecto.Schema
@@ -22,34 +22,6 @@ defmodule Console.Schema.ManagedNamespace do
     end
   end
 
-  defmodule ServiceSpec do
-    use Piazza.Ecto.Schema
-    alias Console.Schema.Service
-
-    embedded_schema do
-      field :templated,     :boolean, default: true
-      field :repository_id, :binary_id
-      field :contexts,      {:array, :string}
-
-      embeds_one :git,  Service.Git,  on_replace: :update
-      embeds_one :helm, Service.Helm, on_replace: :update
-
-      embeds_one :kustomize, Kustomize, on_replace: :update do
-        field :path, :string
-      end
-    end
-
-    @valid ~w(templated repository_id contexts)a
-
-    def changeset(model, attrs \\ %{}) do
-      model
-      |> cast(attrs, @valid)
-      |> cast_embed(:git)
-      |> cast_embed(:helm)
-      |> cast_embed(:kustomize, with: &Service.kustomize_changeset/2)
-    end
-  end
-
   schema "managed_namespaces" do
     field :name,         :string
     field :description,  :string
@@ -59,6 +31,7 @@ defmodule Console.Schema.ManagedNamespace do
     field :deleted_at,   :utc_datetime_usec
 
     embeds_one :target,  Target, on_replace: :update
+    embeds_one :cascade, GlobalService.Cascade, on_replace: :update
 
     belongs_to :service, ServiceTemplate, on_replace: :update
 
@@ -93,7 +66,7 @@ defmodule Console.Schema.ManagedNamespace do
     from(mn in query, order_by: ^order)
   end
 
-  def preloaded(query \\ __MODULE__, preloads \\ [:service]) do
+  def preloaded(query \\ __MODULE__, preloads \\ [service: :dependencies]) do
     from(mn in query, preload: ^preloads)
   end
 
@@ -105,6 +78,7 @@ defmodule Console.Schema.ManagedNamespace do
     model
     |> cast(attrs, @valid)
     |> cast_embed(:target)
+    |> cast_embed(:cascade, with: &GlobalService.cascade_changeset/2)
     |> cast_assoc(:service)
     |> cast_assoc(:clusters)
     |> validate_required(~w(name)a)

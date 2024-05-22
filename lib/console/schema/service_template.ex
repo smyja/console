@@ -1,6 +1,6 @@
 defmodule Console.Schema.ServiceTemplate do
   use Piazza.Ecto.Schema
-  alias Console.Schema.{GitRepository, Service, Metadata, Revision}
+  alias Console.Schema.{GitRepository, Service, Metadata, Revision, ServiceDependency}
 
   schema "service_templates" do
     field :name,          :string
@@ -8,6 +8,7 @@ defmodule Console.Schema.ServiceTemplate do
     field :templated,     :boolean, default: true
     field :contexts,      {:array, :string}
     field :configuration, {:array, :map}, virtual: true
+    field :ignore_sync,   :boolean, virtual: true
 
     embeds_one :git,  Service.Git,  on_replace: :update
     embeds_one :helm, Service.Helm, on_replace: :update
@@ -20,6 +21,10 @@ defmodule Console.Schema.ServiceTemplate do
       embeds_one :namespace_metadata, Metadata
       field :create_namespace, :boolean, default: true
     end
+
+    has_many :dependencies, ServiceDependency,
+      foreign_key: :template_id,
+      on_replace: :delete
 
     belongs_to :revision,   Revision
     belongs_to :repository, GitRepository
@@ -60,6 +65,7 @@ defmodule Console.Schema.ServiceTemplate do
   def changeset(model, attrs \\ %{}) do
     model
     |> cast(attrs, @valid)
+    |> cast_assoc(:dependencies)
     |> foreign_key_constraint(:repository_id)
     |> cast_embed(:git)
     |> cast_embed(:helm)

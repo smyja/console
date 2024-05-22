@@ -40,26 +40,27 @@ type ConsoleClient interface {
 	UpdateCluster(id string, attrs console.ClusterUpdateAttributes) (*console.ClusterFragment, error)
 	ListClusters() (*console.ListClusters, error)
 	DeleteCluster(id string) (*console.ClusterFragment, error)
-	IsClusterExisting(id *string) bool
+	IsClusterExisting(id *string) (bool, error)
 	IsClusterDeleting(id *string) bool
 	CreateProvider(ctx context.Context, attributes console.ClusterProviderAttributes) (*console.ClusterProviderFragment, error)
 	GetProvider(ctx context.Context, id string) (*console.ClusterProviderFragment, error)
 	GetProviderByCloud(ctx context.Context, cloud v1alpha1.CloudProvider) (*console.ClusterProviderFragment, error)
 	UpdateProvider(ctx context.Context, id string, attributes console.ClusterProviderUpdateAttributes) (*console.ClusterProviderFragment, error)
 	DeleteProvider(ctx context.Context, id string) error
-	IsProviderExists(ctx context.Context, id string) bool
+	IsProviderExists(ctx context.Context, id string) (bool, error)
 	IsProviderDeleting(ctx context.Context, id string) bool
 	UpdateService(serviceId string, attributes console.ServiceUpdateAttributes) error
 	DeleteService(serviceId string) error
 	GetGlobalService(id string) (*console.GlobalServiceFragment, error)
 	CreateGlobalService(serviceID string, attributes console.GlobalServiceAttributes) (*console.GlobalServiceFragment, error)
+	CreateGlobalServiceFromTemplate(attributes console.GlobalServiceAttributes) (*console.GlobalServiceFragment, error)
 	DeleteGlobalService(id string) error
 	UpdateGlobalService(id string, attributes console.GlobalServiceAttributes) (*console.GlobalServiceFragment, error)
 	SavePipeline(name string, attrs console.PipelineAttributes) (*console.PipelineFragment, error)
 	DeletePipeline(id string) (*console.PipelineFragment, error)
 	GetPipeline(id string) (*console.PipelineFragment, error)
 	ListPipelines() (*console.GetPipelines, error)
-	IsPipelineExisting(id string) bool
+	IsPipelineExisting(id string) (bool, error)
 	GetUser(email string) (*console.UserFragment, error)
 	GetGroup(name string) (*console.GroupFragment, error)
 	CreateScmConnection(ctx context.Context, attributes console.ScmConnectionAttributes) (*console.ScmConnectionFragment, error)
@@ -67,19 +68,19 @@ type ConsoleClient interface {
 	DeleteScmConnection(ctx context.Context, id string) error
 	GetScmConnection(ctx context.Context, id string) (*console.ScmConnectionFragment, error)
 	GetScmConnectionByName(ctx context.Context, name string) (*console.ScmConnectionFragment, error)
-	IsScmConnectionExists(ctx context.Context, name string) bool
+	IsScmConnectionExists(ctx context.Context, name string) (bool, error)
 	GetClusterBackup(clusterId, namespace, name *string) (*console.ClusterBackupFragment, error)
 	GetClusterRestore(ctx context.Context, id string) (*console.ClusterRestoreFragment, error)
 	UpdateClusterRestore(ctx context.Context, id string, attrs console.RestoreAttributes) (*console.ClusterRestoreFragment, error)
 	CreateClusterRestore(ctx context.Context, backupId string) (*console.ClusterRestoreFragment, error)
-	IsClusterRestoreExisting(ctx context.Context, id string) bool
+	IsClusterRestoreExisting(ctx context.Context, id string) (bool, error)
 	CreatePrAutomation(ctx context.Context, attributes console.PrAutomationAttributes) (*console.PrAutomationFragment, error)
 	UpdatePrAutomation(ctx context.Context, id string, attributes console.PrAutomationAttributes) (*console.PrAutomationFragment, error)
 	DeletePrAutomation(ctx context.Context, id string) error
 	GetPrAutomation(ctx context.Context, id string) (*console.PrAutomationFragment, error)
 	GetPrAutomationByName(ctx context.Context, name string) (*console.PrAutomationFragment, error)
-	IsPrAutomationExists(ctx context.Context, id string) bool
-	IsPrAutomationExistsByName(ctx context.Context, name string) bool
+	IsPrAutomationExists(ctx context.Context, id string) (bool, error)
+	IsPrAutomationExistsByName(ctx context.Context, name string) (bool, error)
 	GetServiceContext(name string) (*console.ServiceContextFragment, error)
 	GetPipelineContext(ctx context.Context, id string) (*console.PipelineContextFragment, error)
 	CreatePipelineContext(ctx context.Context, pipelineID string, attributes console.PipelineContextAttributes) (*console.CreatePipelineContext, error)
@@ -96,6 +97,12 @@ type ConsoleClient interface {
 	DeleteNamespace(ctx context.Context, id string) error
 	CreateNamespace(ctx context.Context, attributes console.ManagedNamespaceAttributes) (*console.ManagedNamespaceFragment, error)
 	UpdateNamespace(ctx context.Context, id string, attributes console.ManagedNamespaceAttributes) (*console.ManagedNamespaceFragment, error)
+	GetStack(ctx context.Context, id string) (*console.InfrastructureStackFragment, error)
+	DeleteStack(ctx context.Context, id string) error
+	CreateStack(ctx context.Context, attributes console.StackAttributes) (*console.InfrastructureStackFragment, error)
+	UpdateStack(ctx context.Context, id string, attributes console.StackAttributes) (*console.InfrastructureStackFragment, error)
+	DetachStack(ctx context.Context, id string) error
+	DetachService(serviceId string) error
 }
 
 func New(url, token string) ConsoleClient {

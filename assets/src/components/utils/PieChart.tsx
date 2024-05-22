@@ -1,5 +1,5 @@
 import { ResponsivePie } from '@nivo/pie'
-import { ComponentProps, useMemo } from 'react'
+import { ComponentProps, ReactNode, useMemo } from 'react'
 import { useTheme } from 'styled-components'
 
 import { useChartTheme } from './charts'
@@ -13,11 +13,16 @@ export type PieChartData = {
 }[]
 export function PieChart({
   data,
+  width,
+  height,
+  rotate = 45,
   ...props
-}: { data: PieChartData } & Omit<
-  ComponentProps<typeof ResponsivePie>,
-  'data'
->) {
+}: {
+  data: PieChartData
+  width?: string
+  height?: string
+  rotate?: number
+} & Omit<ComponentProps<typeof ResponsivePie>, 'data'>) {
   const chartTheme = useChartTheme()
   const theme = useTheme()
   const isEmpty = useMemo(
@@ -40,30 +45,55 @@ export function PieChart({
   )
 
   return (
-    <ResponsivePie
-      activeOuterRadiusOffset={3}
-      borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
-      colors={{ datum: 'data.color' }}
-      data={pieData}
-      enableArcLabels={false}
-      enableArcLinkLabels={false}
-      innerRadius={0.75}
-      margin={{
-        top: 10,
-        right: 10,
-        bottom: 10,
-        left: 10,
-      }}
-      tooltip={({ datum }) => (
-        <ChartTooltip
-          color={datum.color}
-          label={datum.label}
-          value={datum.formattedValue}
-        />
-      )}
-      theme={chartTheme}
-      {...props}
-      {...(isEmpty ? { isInteractive: false } : {})}
-    />
+    <ChartSizeOption
+      width={width}
+      height={height}
+    >
+      <ResponsivePie
+        activeOuterRadiusOffset={3}
+        borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
+        colors={{ datum: 'data.color' }}
+        data={pieData}
+        enableArcLabels={false}
+        enableArcLinkLabels={false}
+        innerRadius={0.75}
+        startAngle={rotate}
+        endAngle={360 + rotate}
+        margin={{
+          top: 10,
+          right: 10,
+          bottom: 10,
+          left: 10,
+        }}
+        tooltip={({ datum }) => (
+          <ChartTooltip
+            color={datum.color}
+            label={datum.label}
+            value={datum.formattedValue}
+          />
+        )}
+        theme={chartTheme}
+        {...props}
+        {...(isEmpty ? { isInteractive: false } : {})}
+      />
+    </ChartSizeOption>
+  )
+}
+
+function ChartSizeOption({
+  width,
+  height,
+  children,
+}: {
+  width?: string
+  height?: string
+  children: ReactNode
+}) {
+  return width || height ? (
+    <div css={{ width: width || undefined, height: height || undefined }}>
+      {children}
+    </div>
+  ) : (
+    children
   )
 }

@@ -25,10 +25,14 @@ defmodule Console.Application do
       Console.Cron,
       {Registry, [keys: :unique, name: Console.Deployments.Git.Agent.registry()]},
       {Registry, [keys: :unique, name: Console.Deployments.Pipelines.Supervisor.registry()]},
+      {Registry, [keys: :unique, name: Console.Deployments.Stacks.Worker.registry()]},
+      {Registry, [keys: :unique, name: Console.Deployments.Helm.Agent.registry()]},
       {Cluster.Supervisor, [topologies, [name: Console.ClusterSupervisor]]},
       Console.Deployments.Git.Supervisor,
+      Console.Deployments.Stacks.Supervisor,
       Console.Deployments.Helm.Server,
       Console.Deployments.Pipelines.Supervisor,
+      Console.Deployments.Helm.Supervisor,
       Console.Deployments.Git.Kick,
       Console.Deployments.Deprecations.Table,
       Console.Deployments.Compatibilities.Table,
@@ -39,6 +43,7 @@ defmodule Console.Application do
       Console.Cached.Supervisor,
       Console.Watchers.Supervisor,
       Console.Prom.Scraper,
+      {Bandit, plug: ConsoleWeb.Plugs.MetricsExporter, port: 9090},
       {OpenIDConnect.Worker, Application.get_env(:console, :oidc_providers)},
     ] ++ consumers() ++ [
       Piazza.GracefulShutdown

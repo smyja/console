@@ -1,6 +1,7 @@
 defmodule Console.Deployments.Global do
   use Console.Services.Base
   import Console.Deployments.Policies
+  import Console, only: [clean: 1]
   alias Console.PubSub
   alias Console.Deployments.Services
   alias Console.Services.Users
@@ -13,6 +14,7 @@ defmodule Console.Deployments.Global do
     ManagedNamespace,
     NamespaceInstance,
     ServiceTemplate,
+    ServiceDependency,
     Revision
   }
   require Logger
@@ -24,10 +26,12 @@ defmodule Console.Deployments.Global do
 
   def get_namespace!(id), do: Repo.get!(ManagedNamespace, id)
 
+  def get_service(%GlobalService{} = svc, cluster_id), do: Services.get_service_by_name(cluster_id, svc_name(svc))
+
   @doc """
   Creates a new global service and defers syncing clusters through the pubsub broadcaster
   """
-  @spec create(map, binary, User.t) :: global_resp
+  @spec create(map, binary | nil, User.t) :: global_resp
   def create(attrs, service_id, %User{} = user) do
     start_transaction()
     |> add_operation(:global, fn _ ->
@@ -37,14 +41,16 @@ defmodule Console.Deployments.Global do
       |> when_ok(:insert)
     end)
     |> add_operation(:rev, fn %{global: global} ->
-      Repo.preload(global, [:template])
+      Repo.preload(global, template: :dependencies)
       |> Map.get(:template)
       |> ensure_revision(get_in(attrs, [:template, :configuration]))
     end)
     |> execute(extract: :global)
-    |> when_ok(&Repo.preload(&1, [:template], force: true))
+    |> when_ok(&Repo.preload(&1, [template: :dependencies], force: true))
     |> notify(:create, user)
   end
+
+  def create(attrs, %User{} = user), do: create(attrs, nil, user)
 
 
   @doc """
@@ -54,18 +60,18 @@ defmodule Console.Deployments.Global do
     start_transaction()
     |> add_operation(:global, fn _ ->
       get!(id)
-      |> Repo.preload([:template])
+      |> Repo.preload(template: :dependencies)
       |> GlobalService.changeset(attrs)
       |> allow(user, :write)
       |> when_ok(:update)
     end)
     |> add_operation(:rev, fn %{global: global} ->
-      Repo.preload(global, [:template])
+      Repo.preload(global, template: :dependencies)
       |> Map.get(:template)
       |> ensure_revision(get_in(attrs, [:template, :configuration]))
     end)
     |> execute(extract: :global)
-    |> when_ok(&Repo.preload(&1, [:template], force: true))
+    |> when_ok(&Repo.preload(&1, [template: :dependencies], force: true))
     |> notify(:update, user)
   end
 
@@ -75,16 +81,25 @@ defmodule Console.Deployments.Global do
   @spec delete(binary, User.t) :: global_resp
   def delete(global_id, %User{} = user) do
     start_transaction()
-    |> add_operation(:owned, fn _ ->
-      Service.for_owner(global_id)
-      |> Repo.update_all(set: [owner_id: nil])
-      |> ok()
-    end)
     |> add_operation(:global, fn _ ->
       get!(global_id)
       |> allow(user, :write)
-      |> when_ok(:delete)
     end)
+    |> add_operation(:cascade, fn
+      %{global: %GlobalService{cascade: %GlobalService.Cascade{delete: true}}} ->
+        Service.for_owner(global_id)
+        |> Repo.update_all(set: [deleted_at: Timex.now()])
+        |> ok()
+      %{global: %GlobalService{cascade: %GlobalService.Cascade{detach: true}}} ->
+        Service.for_owner(global_id)
+        |> Repo.delete_all()
+        |> ok()
+      %{global: _} ->
+        Service.for_owner(global_id)
+        |> Repo.update_all(set: [owner_id: nil])
+        |> ok()
+    end)
+    |> add_operation(:delete, fn %{global: global} -> Repo.delete(global) end)
     |> execute(extract: :global)
     |> notify(:delete, user)
   end
@@ -102,12 +117,12 @@ defmodule Console.Deployments.Global do
       |> when_ok(:insert)
     end)
     |> add_operation(:rev, fn %{ns: ns} ->
-      Repo.preload(ns, [:service])
+      Repo.preload(ns, [service: :dependencies])
       |> Map.get(:service)
       |> ensure_revision(get_in(attrs, [:service, :configuration]))
     end)
     |> execute(extract: :ns)
-    |> when_ok(&Repo.preload(&1, [:service], force: true))
+    |> when_ok(&Repo.preload(&1, [service: :dependencies], force: true))
     |> notify(:create, user)
   end
 
@@ -119,18 +134,18 @@ defmodule Console.Deployments.Global do
     start_transaction()
     |> add_operation(:ns, fn _ ->
       get_namespace!(namespace_id)
-      |> Repo.preload([:service])
+      |> Repo.preload([service: :dependencies])
       |> ManagedNamespace.changeset(attrs)
       |> allow(user, :write)
       |> when_ok(:update)
     end)
     |> add_operation(:rev, fn %{ns: ns} ->
-      Repo.preload(ns, [:service])
+      Repo.preload(ns, [service: :dependencies])
       |> Map.get(:service)
       |> ensure_revision(get_in(attrs, [:service, :configuration]))
     end)
     |> execute(extract: :ns)
-    |> when_ok(&Repo.preload(&1, [:service], force: true))
+    |> when_ok(&Repo.preload(&1, [service: :dependencies], force: true))
     |> notify(:update, user)
   end
 
@@ -186,6 +201,7 @@ defmodule Console.Deployments.Global do
   def add_to_cluster(%GlobalService{id: gid, template: %ServiceTemplate{} = tpl}, %Cluster{id: id}, user) do
     ServiceTemplate.attributes(tpl)
     |> Map.put(:owner_id, gid)
+    |> Map.put(:dependences, svc_deps(tpl.dependencies, []))
     |> Services.create_service(id, user)
   end
 
@@ -196,7 +212,7 @@ defmodule Console.Deployments.Global do
   Ensures a managed namespace is synchronized across all target clusters
   """
   def reconcile_namespace(%ManagedNamespace{} = ns) do
-    ns = Repo.preload(ns, [:clusters, :service])
+    ns = Repo.preload(ns, [:clusters, service: :dependencies])
          |> load_configuration()
     bot = bot()
 
@@ -215,9 +231,9 @@ defmodule Console.Deployments.Global do
   def sync_namespace(%Cluster{} = cluster, %ManagedNamespace{} = ns, user \\ nil) do
     user = user || bot()
     with %NamespaceInstance{} = ni <- Repo.get_by(NamespaceInstance, cluster_id: cluster.id, namespace_id: ns.id),
-         %{service: %Service{} = service} <- Repo.preload(ni, [service: :context_bindings]),
-         {:diff, true} <- {:diff, diff?(ns.service, service)} do
-      namespace_service_attrs(ns)
+         %{service: %Service{} = service} <- Repo.preload(ni, [service: [:context_bindings, :dependencies]]),
+         {:diff, true} <- {:diff, diff?(%{ns.service | ignore_sync: true}, service)} do
+      namespace_service_attrs(ns, service.dependencies)
       |> Map.delete(:name)
       |> Services.update_service(service.id, user)
     else
@@ -226,27 +242,34 @@ defmodule Console.Deployments.Global do
     end
   end
 
-  defp create_namespace_instance(%ManagedNamespace{service: %{}} = ns, %Cluster{} = cluster, %User{} = user) do
+  defp create_namespace_instance(%ManagedNamespace{service: %{}} = ns, %Cluster{id: cid} = cluster, %User{} = user) do
+    %{name: name} = attrs = namespace_service_attrs(ns, [])
     start_transaction()
     |> add_operation(:service, fn _ ->
-      namespace_service_attrs(ns)
-      |> Services.create_service(cluster.id, user)
+      case Services.get_service_by_name(cid, name) do
+        %Service{} = svc -> {:ok, svc}
+        _ -> Services.create_service(attrs, cid, user)
+      end
     end)
     |> add_operation(:instance, fn %{service: svc} ->
-      %NamespaceInstance{}
+      case Repo.get_by(NamespaceInstance, cluster_id: cid, service_id: svc.id) do
+        %NamespaceInstance{} = ni -> ni
+        _ -> %NamespaceInstance{}
+      end
       |> NamespaceInstance.changeset(%{
         service_id: svc.id,
         cluster_id: cluster.id,
         namespace_id: ns.id
       })
-      |> Repo.insert()
+      |> Repo.insert_or_update()
     end)
     |> execute(extract: :service)
   end
   defp create_namespace_instance(ns, _, _), do: Logger.info "Namespace #{ns.name}[#{ns.id}] does not specify a service"
 
-  defp namespace_service_attrs(%ManagedNamespace{service: %{} = tpl} = ns) do
+  defp namespace_service_attrs(%ManagedNamespace{service: %{} = tpl} = ns, deps) do
     ServiceTemplate.attributes(tpl, ns.name, "#{ns.name}-core")
+    |> Map.put(:dependencies, svc_deps(tpl.dependencies, deps))
     |> Map.put(:sync_config, %{create_namespace: false})
   end
 
@@ -279,20 +302,113 @@ defmodule Console.Deployments.Global do
   """
   @spec sync_clusters(GlobalService.t) :: :ok
   def sync_clusters(%GlobalService{id: gid} = global) do
-    %{service: svc} = global = Repo.preload(global, [:service, :template])
+    %{service: svc} = global = Repo.preload(global, [template: :dependencies, service: [:context_bindings, :dependencies]])
     global = load_configuration(global)
     bot = bot()
+
+    service_ids = GlobalService.service_ids(gid) |> Repo.all() |> MapSet.new()
+
     Cluster.ignore_ids(if not is_nil(svc), do: [svc.cluster_id], else: [])
     |> Cluster.target(global)
     |> Repo.all()
-    |> Enum.each(fn %{id: cluster_id} = cluster ->
-      case Services.get_service_by_name(cluster_id, svc.name) do
-        %Service{owner_id: ^gid} = dest -> sync_service(global, dest, bot)
-        %Service{} -> :ok # ignore if the service was created out of band
-        nil -> add_to_cluster(global, cluster, bot)
+    |> Enum.map(fn %{id: cluster_id} = cluster ->
+      case {global, Services.get_service_by_name(cluster_id, svc_name(global))} do
+        {_, %Service{owner_id: ^gid} = dest} -> sync_service(global, dest, bot)
+        {%GlobalService{reparent: true}, %Service{} = dest} -> sync_service(global, dest, bot)
+        {_, %Service{}} -> :ok # ignore if the service was created out of band
+        {_, nil} -> add_to_cluster(global, cluster, bot)
       end
     end)
+    |> Enum.map(fn
+      {:ok, %Service{id: id}} -> id
+      %Service{id: id} -> id
+      _ -> nil
+    end)
+    |> Enum.filter(& &1)
+    |> MapSet.new()
+    |> (fn s -> MapSet.difference(service_ids, s) end).()
+    |> MapSet.to_list()
+    |> maybe_drain(global)
   end
+
+  @doc """
+  Determines if a given list of service ids should be drained due to a state event
+  """
+  @spec maybe_drain([Service.t]) :: :ok
+  def maybe_drain(service_ids) do
+    Logger.info "Attempting to drain [#{Enum.join(service_ids, ", ")}]"
+    bot = bot()
+
+    Service.for_ids(service_ids)
+    |> Repo.all()
+    |> Repo.preload([:owner])
+    |> Enum.each(fn
+      %{owner: %GlobalService{cascade: %{delete: true}}} = svc ->
+        Services.delete_service(svc.id, bot)
+      %{owner: %GlobalService{cascade: %{detach: true}}} = svc ->
+        Services.detach_service(svc.id, bot)
+      _ -> :ok
+    end)
+  end
+
+  @doc """
+  Syncs all global services and managed namespaces attached to a cluster
+  """
+  @spec sync_cluster(Cluster.t) :: :ok
+  def sync_cluster(%Cluster{} = cluster) do
+    cluster = Repo.preload(cluster, [:tags])
+    bot = %{Users.get_bot!("console") | roles: %{admin: true}}
+    svcs =  Service.globalized()
+            |> Service.for_cluster(cluster.id)
+            |> Repo.all()
+            |> MapSet.new(& &1.id)
+
+    GlobalService.stream()
+    |> GlobalService.preloaded()
+    |> Repo.stream(method: :keyset)
+    |> Stream.filter(&__MODULE__.match?(&1, cluster))
+    |> Stream.map(fn global ->
+      case add_to_cluster(global, cluster) do
+        {:ok, svc} -> svc
+        _ -> get_service(global, cluster.id)
+      end
+    end)
+    |> Stream.map(fn
+      %Service{id: id} -> id
+      _ -> nil
+    end)
+    |> Stream.filter(& &1)
+    |> Enum.into(MapSet.new())
+    |> (fn expected -> MapSet.difference(svcs, expected) end).()
+    |> MapSet.to_list()
+    |> maybe_drain()
+
+    ManagedNamespace.for_cluster(cluster)
+    |> ManagedNamespace.preloaded()
+    |> ManagedNamespace.stream()
+    |> Repo.stream(method: :keyset)
+    |> Stream.each(&sync_namespace(cluster, &1, bot))
+    |> Stream.run()
+  end
+
+  @spec maybe_drain([binary], GlobalService.t) :: :ok
+  def maybe_drain(service_ids, %GlobalService{cascade: %{delete: true}}) do
+    Service.for_ids(service_ids)
+    |> Repo.update_all(set: [deleted_at: Timex.now()])
+    :ok
+  end
+
+  def maybe_drain(service_ids, %GlobalService{cascade: %{detach: true}}) do
+    Service.for_ids(service_ids)
+    |> Repo.delete_all()
+    :ok
+  end
+
+  def maybe_drain(_, _), do: :ok
+
+  defp svc_name(%GlobalService{service: %Service{name: name}}), do: name
+  defp svc_name(%GlobalService{template: %ServiceTemplate{name: name}}), do: name
+  defp svc_name(%GlobalService{name: name}), do: name
 
   defp bot(), do: %{Users.get_bot!("console") | roles: %{admin: true}}
 
@@ -300,32 +416,47 @@ defmodule Console.Deployments.Global do
   it can resync a service owned by a global service
   """
   @spec sync_service(GlobalService.t | Service.t, Service.t, User.t) :: Services.service_resp | :ok
-  def sync_service(%GlobalService{template: %ServiceTemplate{} = tpl}, %Service{} = dest, %User{} = user) do
+  def sync_service(%GlobalService{template: %ServiceTemplate{} = tpl, id: id}, %Service{} = dest, %User{} = user) do
     Logger.info "Attempting to resync service #{dest.id}"
+    dest = Repo.preload(dest, [:context_bindings, :dependencies])
+    tpl = Repo.preload(tpl, [:dependencies])
     case diff?(tpl, dest) do
-      true -> ServiceTemplate.attributes(tpl) |> Services.update_service(dest.id, user)
-      false -> Logger.info "did not update service due to no differences"
+      true -> ServiceTemplate.attributes(tpl)
+              |> Map.put(:dependencies, svc_deps(tpl.dependencies, dest.dependencies))
+              |> Map.put(:owner_id, id)
+              |> Services.update_service(dest.id, user)
+      false ->
+        Logger.info "did not update service due to no differences"
+        dest
     end
   end
 
-  def sync_service(%GlobalService{service: %Service{} = source}, %Service{} = dest, %User{} = user),
-    do: sync_service(source, dest, user)
+  def sync_service(%GlobalService{service: %Service{} = source, id: id}, %Service{} = dest, %User{} = user),
+    do: sync_service(source, %{dest | owner_id: id}, user)
 
-  def sync_service(%Service{} = source, %Service{} = dest, %User{} = user) do
+  def sync_service(%Service{} = source, %Service{owner_id: owner_id} = dest, %User{} = user) do
     Logger.info "attempting to resync service #{dest.id}"
+    source = Repo.preload(source, [:context_bindings, :dependencies])
+    dest = Repo.preload(dest, [:context_bindings, :dependencies])
     with {:ok, source_secrets} <- Services.configuration(source),
          {:ok, dest_secrets} <- Services.configuration(dest),
          {:diff, true} <- {:diff, diff?(source, dest, source_secrets, dest_secrets)} do
       Services.update_service(%{
+        templated: source.templated,
         namespace: source.namespace,
+        owner_id: owner_id,
         configuration: Enum.map(Map.merge(dest_secrets, source_secrets), fn {k, v} -> %{name: k, value: v} end),
         repository_id: source.repository_id,
+        sync_config: clean(source.sync_config),
         git: clean(source.git),
         helm: clean(source.helm),
         kustomize: clean(source.kustomize),
+        dependencies: svc_deps(source.dependencies, dest.dependencies)
       }, dest.id, user)
     else
-      err -> Logger.info "did not sync service due to: #{inspect(err)}"
+      err ->
+        Logger.info "did not sync service due to: #{inspect(err)}"
+        dest
     end
   end
 
@@ -333,7 +464,8 @@ defmodule Console.Deployments.Global do
   Fetches associated secure configuration of a service template
   """
   @spec configuration(ServiceTemplate.t) :: {:ok, map} | Console.error
-  def configuration(%ServiceTemplate{revision_id: id}) when is_binary(id), do: secret_store().fetch(id)
+  def configuration(%ServiceTemplate{revision_id: id}) when is_binary(id),
+    do: secret_store().fetch(id)
   def configuration(_), do: {:ok, %{}}
 
   def load_configuration(%GlobalService{template: %ServiceTemplate{} = tpl} = global) do
@@ -356,14 +488,18 @@ defmodule Console.Deployments.Global do
     do: diff?(template, dest)
 
   def diff?(%ServiceTemplate{} = spec, %Service{} = dest) do
+    spec = Repo.preload(spec, [:dependencies])
+    dest = Repo.preload(dest, [:dependencies])
     with {:ok, source_secrets} <- configuration(spec),
          {:ok, dest_secrets} <- Services.configuration(dest),
       do: (spec.repository_id != dest.repository_id || spec.templated != dest.templated ||
-            specs_different?(spec, dest) || contexts_different?(spec, dest) ||
+            specs_different?(spec, dest) || !contexts_equal?(spec, dest) || !deps_equal?(spec, dest) ||
             missing_source?(source_secrets, dest_secrets))
   end
 
   def diff?(%Service{} = source, %Service{} = dest) do
+    source = Repo.preload(source, [:dependencies])
+    dest = Repo.preload(dest, [:dependencies])
     with {:ok, source_secrets} <- Services.configuration(source),
          {:ok, dest_secrets} <- Services.configuration(dest),
       do: diff?(source, dest, source_secrets, dest_secrets)
@@ -372,7 +508,7 @@ defmodule Console.Deployments.Global do
   def diff?(_, _), do: false
 
   defp diff?(%Service{} = s, %Service{} = d, source, dest) do
-    missing_source?(source, dest) || specs_different?(s, d) || s.repository_id != d.repository_id || s.namespace != d.namespace
+    missing_source?(source, dest) || !deps_equal?(s, d) || specs_different?(s, d) || s.repository_id != d.repository_id || s.namespace != d.namespace || s.templated != d.templated
   end
 
   defp ensure_revision(%ServiceTemplate{} = template, config) do
@@ -408,23 +544,37 @@ defmodule Console.Deployments.Global do
     Enum.any?(source, fn {k, v} -> dest[k] != v end)
   end
 
-  defp contexts_different?(%ServiceTemplate{contexts: ctxs}, svc) do
-    MapSet.new(svc.context_bindings, & &1.context_id)
+  defp contexts_equal?(%ServiceTemplate{contexts: ctxs}, svc) do
+    MapSet.new(svc.context_bindings || [], & &1.context_id)
     |> MapSet.equal?(MapSet.new(ctxs || []))
   end
 
+  defp deps_equal?(%{dependencies: deps}, svc) do
+    MapSet.new(svc.dependencies || [], & &1.name)
+    |> MapSet.equal?(MapSet.new(deps || [], & &1.name))
+  end
+
+  @spec svc_deps([ServiceDependency.t], [ServiceDependency.t]) :: [ServiceDependency.t]
+  defp svc_deps(dependencies, existing) do
+    existing_by_name = Map.new(existing, & {&1.name, &1})
+    Enum.map(dependencies, fn dep ->
+      case Map.get(existing_by_name, dep.name) do
+        %ServiceDependency{status: s} -> %{name: dep.name, status: s}
+        _ -> %{name: dep.name}
+      end
+    end)
+  end
+
   defp specs_different?(source, dest) do
-    Enum.any?(~w(helm git kustomize)a, fn key ->
+    Enum.any?(spec_fields(source), fn key ->
       s = Map.get(source, key)
       d = Map.get(dest, key)
       clean(s) != clean(d)
     end)
   end
 
-  defp clean(val) do
-    Console.mapify(val)
-    |> Console.remove_ids()
-  end
+  defp spec_fields(%{ignore_sync: true}), do: ~w(helm git kustomize)a
+  defp spec_fields(_), do: ~w(helm git kustomize sync_config)a
 
   def notify({:ok, %GlobalService{} = svc}, :create, user),
     do: handle_notify(PubSub.GlobalServiceCreated, svc, actor: user)

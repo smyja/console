@@ -17,7 +17,10 @@ defmodule Console.Deployments.Policies.Rbac do
     RuntimeService,
     PrAutomation,
     PolicyConstraint,
-    PinnedCustomResource
+    PinnedCustomResource,
+    Stack,
+    StackRun,
+    RunStep
   }
 
   def globally_readable(query, %User{roles: %{admin: true}}, _), do: query
@@ -67,6 +70,12 @@ defmodule Console.Deployments.Policies.Rbac do
     do: recurse(settings, user, action)
   def evaluate(%PolicyConstraint{} = constraint, %User{} = user, action),
     do: recurse(constraint, user, action, & &1.cluster)
+  def evaluate(%Stack{} = stack, %User{} = user, action),
+    do: recurse(stack, user, action, & &1.cluster)
+  def evaluate(%StackRun{} = run, %User{} = user, action),
+    do: recurse(run, user, action, & &1.stack)
+  def evaluate(%RunStep{} = step, %User{} = user, action),
+    do: recurse(step, user, action, & &1.run)
   def evaluate(%PinnedCustomResource{} = pcr, %User{} = user, action) do
     recurse(pcr, user, action, fn
       %{cluster: %Cluster{} = cluster} -> cluster
@@ -75,19 +84,22 @@ defmodule Console.Deployments.Policies.Rbac do
   end
   def evaluate(_, _, _), do: false
 
-  def preload(%PipelineContext{} = ctx), do: Repo.preload(ctx, [pipeline: [:read_bindings, :write_bindings]])
-  def preload(%PipelineGate{} = gate), do: Repo.preload(gate, [edge: [pipeline: [:read_bindings, :write_bindings]]])
-  def preload(%Pipeline{} = pipe), do: Repo.preload(pipe, [:read_bindings, :write_bindings])
+  @bindings [:read_bindings, :write_bindings]
+  @stack_preloads [:read_bindings, :write_bindings, cluster: @bindings]
+
+  def preload(%PipelineContext{} = ctx), do: Repo.preload(ctx, [pipeline: @bindings])
+  def preload(%PipelineGate{} = gate), do: Repo.preload(gate, [edge: [pipeline: @bindings]])
+  def preload(%Pipeline{} = pipe), do: Repo.preload(pipe, @bindings)
   def preload(%Service{} = service),
-    do: Repo.preload(service, [:read_bindings, :write_bindings, cluster: [:read_bindings, :write_bindings]])
+    do: Repo.preload(service, [:read_bindings, :write_bindings, cluster: @bindings])
   def preload(%Cluster{} = cluster),
-    do: Repo.preload(cluster, [:read_bindings, :write_bindings])
+    do: Repo.preload(cluster, @bindings)
   def preload(%RuntimeService{} = cluster),
-    do: Repo.preload(cluster, [cluster: [:read_bindings, :write_bindings]])
+    do: Repo.preload(cluster, [cluster: @bindings])
   def preload(%ClusterProvider{} = cluster),
-    do: Repo.preload(cluster, [:read_bindings, :write_bindings])
+    do: Repo.preload(cluster, @bindings)
   def preload(%ProviderCredential{} = cred),
-    do: Repo.preload(cred, [provider: [:read_bindings, :write_bindings]])
+    do: Repo.preload(cred, [provider: @bindings])
   def preload(%DeploymentSettings{} = settings),
     do: Repo.preload(settings, [:read_bindings, :write_bindings, :git_bindings, :create_bindings])
   def preload(%PrAutomation{} = pr),
@@ -96,6 +108,12 @@ defmodule Console.Deployments.Policies.Rbac do
     do: Repo.preload(pr, [:cluster])
   def preload(%PinnedCustomResource{} = pcr),
     do: Repo.preload(pcr, [:cluster])
+  def preload(%Stack{} = stack),
+    do: Repo.preload(stack, @stack_preloads)
+  def preload(%StackRun{} = pcr),
+    do: Repo.preload(pcr, [stack: @stack_preloads])
+  def preload(%RunStep{} = pcr),
+    do: Repo.preload(pcr, run: [stack: @stack_preloads])
   def preload(pass), do: pass
 
   defp recurse(resource, user, action, func \\ fn _ -> nil end)

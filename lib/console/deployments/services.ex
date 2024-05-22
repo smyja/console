@@ -3,8 +3,16 @@ defmodule Console.Deployments.Services do
   use Nebulex.Caching
   import Console.Deployments.Policies
   alias Console.PubSub
-  alias Console.Schema.{Service, ServiceComponent, Revision, User, Cluster, ClusterProvider, ApiDeprecation, GitRepository, ServiceContext}
-  alias Console.Deployments.{Secrets.Store, Settings, Git, Clusters, Deprecations.Checker, AddOns, Tar}
+  alias Console.Schema.{Service, ServiceComponent, Revision, User, Cluster, ClusterProvider, ApiDeprecation, GitRepository, ServiceContext, ServiceDependency}
+  alias Console.Deployments.{
+    Secrets.Store,
+    Settings,
+    Git,
+    Clusters,
+    Deprecations.Checker,
+    AddOns,
+    Tar,
+  }
   alias Console.Deployments.Helm
   require Logger
 
@@ -80,22 +88,37 @@ defmodule Console.Deployments.Services do
   before sending it upstream to the given client.
   """
   @spec tarstream(Service.t) :: {:ok, File.t} | Console.error
-  def tarstream(%Service{repository_id: id, helm: %Service.Helm{chart: c, values_files: [_ | _] = files} = helm} = svc) when is_binary(id) and is_binary(c) do
+  def tarstream(%Service{repository_id: id, helm: %Service.Helm{repository_id: rid, chart: c, values_files: [_ | _] = files} = helm} = svc)
+      when is_binary(id) and (is_binary(c) or is_binary(rid)) do
     with {:ok, f} <- Git.Discovery.fetch(svc),
          {:ok, contents} <- Tar.tar_stream(f),
          contents = Map.new(contents),
-         {:ok, f, _} <- Helm.Charts.artifact(svc),
-         splice <- Map.take(contents, files)
-                   |> maybe_values(helm),
-      do: Tar.splice(f, splice)
+         {:ok, chart} <- tarfile(%{svc | norevise: true}),
+         splice <- Map.take(contents, files) |> maybe_values(helm),
+      do: Tar.splice(chart, splice)
   end
+
   def tarstream(%Service{helm: %Service.Helm{values: values}} = svc) when is_binary(values) do
     with {:ok, tar} <- tarfile(svc),
       do: Tar.splice(tar, %{"values.yaml.static" => values})
   end
+
   def tarstream(%Service{} = svc), do: tarfile(svc)
 
-  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v}} = svc) when is_binary(c) and is_binary(v) do
+  defp tarfile(%Service{helm: %Service.Helm{repository_id: id, git: %{} = git}}) when is_binary(id) do
+    Git.get_repository!(id)
+    |> Git.Discovery.fetch(git)
+  end
+
+  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v, url: url}} = svc)
+    when is_binary(c) and is_binary(v) and is_binary(url) do
+    with {:ok, f, sha} <- Helm.Discovery.fetch(url, c, v),
+         {:ok, _} <- update_sha_without_revision(svc, sha),
+      do: {:ok, f}
+  end
+
+  defp tarfile(%Service{helm: %Service.Helm{chart: c, version: v}} = svc)
+    when is_binary(c) and is_binary(v) do
     with {:ok, f, sha} <- Helm.Charts.artifact(svc),
          {:ok, _} <- update_sha_without_revision(svc, sha),
       do: {:ok, f}
@@ -203,6 +226,19 @@ defmodule Console.Deployments.Services do
   end
   def authorized(_, _), do: {:error, "could not find service in cluster"}
 
+  @doc """
+  Determines if all dependencies for a service have been satisfied
+  """
+  @spec dependencies_ready(Service.t) :: service_resp
+  def dependencies_ready(%Service{} = svc) do
+    with %{dependencies: [_ | _] = deps} <- Repo.preload(svc, [:dependencies]),
+         dep when not is_nil(dep) <- Enum.find(deps, & &1.status != :healthy) do
+      {:error, "dependency #{dep.name} is not ready"}
+    else
+      _ -> {:ok, svc}
+    end
+  end
+
   def add_errors(%Service{id: svc_id}, errors) do
     get_service(svc_id)
     |> Repo.preload([:errors])
@@ -269,6 +305,7 @@ defmodule Console.Deployments.Services do
     start_transaction()
     |> add_operation(:source, fn _ ->
       get_service!(service_id)
+      |> Repo.preload([:dependencies, :context_bindings])
       |> allow(user, :write)
     end)
     |> add_operation(:config, fn %{source: source} ->
@@ -276,10 +313,12 @@ defmodule Console.Deployments.Services do
         do: {:ok, merge_configuration(secrets, attrs[:configuration])}
     end)
     |> add_operation(:create, fn %{source: source, config: config} ->
-      Map.take(source, [:repository_id, :sha, :name, :namespace])
+      Map.take(source, [:repository_id, :sha, :name, :namespace, :templated])
       |> Console.dedupe(:git, Console.mapify(source.git))
       |> Console.dedupe(:helm, Console.mapify(source.helm))
       |> Console.dedupe(:kustomize, Console.mapify(source.kustomize))
+      |> Console.dedupe(:dependencies, Enum.map(source.dependencies, & %{name: &1.name}))
+      |> Console.dedupe(:sync_config, Console.clean(source.sync_config))
       |> Map.merge(attrs)
       |> Map.put(:configuration, config)
       |> create_service(cluster_id, user)
@@ -359,6 +398,7 @@ defmodule Console.Deployments.Services do
     |> notify(:update, :ignore)
   end
 
+  defp update_sha_without_revision(%Service{norevise: true} = svc, _), do: {:ok, svc}
   defp update_sha_without_revision(%Service{revision: %Revision{sha: sha}} = svc, sha), do: {:ok, svc}
   defp update_sha_without_revision(%Service{id: id}, sha) do
     start_transaction()
@@ -383,8 +423,10 @@ defmodule Console.Deployments.Services do
   def update_service(attrs, %Service{} = svc) do
     start_transaction()
     |> add_operation(:base, fn _ ->
-      Repo.preload(svc, [:context_bindings, :read_bindings, :write_bindings])
-      |> Service.changeset(Map.put(attrs, :status, :stale))
+      svc = Repo.preload(svc, [:context_bindings, :dependencies, :read_bindings, :write_bindings])
+      attrs = Map.put(attrs, :status, :stale)
+      svc
+      |> Service.changeset(stabilize_deps(attrs, svc))
       |> Service.update_changeset()
       |> Console.Repo.update()
     end)
@@ -479,6 +521,26 @@ defmodule Console.Deployments.Services do
   def rollback?(%Service{promotion: :rollback}), do: true
   def rollback?(_), do: false
 
+  def stale_dependencies?(%Service{cluster_id: id, name: name}) do
+    ServiceDependency.for_cluster(id)
+    |> ServiceDependency.for_name(name)
+    |> ServiceDependency.pending()
+    |> Repo.exists?()
+  end
+
+  def flush_dependencies(%Service{status: :healthy, cluster_id: id, name: name} = svc) do
+    if stale_dependencies?(svc) do
+      ServiceDependency.for_cluster(id)
+      |> ServiceDependency.for_name(name)
+      |> ServiceDependency.pending()
+      |> Repo.update_all(set: [status: :healthy])
+      |> ok()
+    else
+      {:ok, []}
+    end
+  end
+  def flush_dependencies(_), do: {:ok, :pending}
+
   @doc """
   Updates the list of service components, separate operation to avoid creating a no-op revision
   """
@@ -495,7 +557,7 @@ defmodule Console.Deployments.Services do
     end)
     |> add_operation(:deprecations, fn %{service: svc} -> add_deprecations(svc) end)
     |> add_operation(:updated, fn %{service: %Service{components: components} = service} ->
-      running = Enum.all?(components, & &1.state == :running || is_nil(&1.state))
+      running = Enum.all?(components, & &1.state == :running || is_nil(&1.state)) && !Enum.empty?(components)
       failed = Enum.any?(components, & &1.state == :failed)
       paused = Enum.any?(components, & &1.state == :paused)
       unsynced = Enum.any?(components, & !&1.synced)
@@ -509,6 +571,7 @@ defmodule Console.Deployments.Services do
         _ -> update_status(service, :stale, component_status)
       end
     end)
+    |> add_operation(:dependencies, fn %{updated: svc} -> flush_dependencies(svc) end)
     |> execute(extract: :updated)
     |> notify(:components)
   end
@@ -520,6 +583,13 @@ defmodule Console.Deployments.Services do
     with {:ok, svc} <- authorized(service_id, cluster),
       do: update_components(attrs, svc)
   end
+
+  def stabilize_deps(%{dependencies: deps} = attrs, %Service{dependencies: old_deps}) when is_list(old_deps) do
+    by_name = Map.new(old_deps, & {&1.name, &1.status})
+    deps = Enum.map(deps, &Map.put(&1, :status, by_name[&1.name]))
+    Map.put(attrs, :dependencies, deps)
+  end
+  def stabilize_deps(attrs, _), do: attrs
 
   def stabilize(%{components: new_components} = attrs, %{components: components}) do
     components = Map.new(components, fn %{id: id} = comp -> {component_key(comp), id} end)

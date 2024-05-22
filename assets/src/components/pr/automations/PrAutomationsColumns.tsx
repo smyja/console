@@ -65,11 +65,7 @@ const ColRepo = columnHelper.accessor(({ node }) => node?.identifier, {
   header: 'Repo',
   meta: { truncate: true },
   cell: function Cell({ getValue }) {
-    return (
-      <TruncateStart>
-        <span>{getValue()}</span>
-      </TruncateStart>
-    )
+    return <TruncateStart>{getValue()}</TruncateStart>
   },
 })
 
@@ -121,6 +117,8 @@ const ColRole = columnHelper.accessor(({ node }) => node?.cluster?.name, {
   cell: function Cell({ row }) {
     const { role, cluster } = row.original.node || {}
     const label = roleToLabel[role || ''] || roleToLabel['']
+
+    if (!role) return null
 
     return (
       <ColRoleSC>

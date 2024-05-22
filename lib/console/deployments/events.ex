@@ -33,6 +33,8 @@ defmodule Console.PubSub.PipelineUpserted, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.PipelineDeleted, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.PipelineStageUpdated, do: use Piazza.PubSub.Event
 
+defmodule Console.PubSub.PipelineContextCreated, do: use Piazza.PubSub.Event
+
 defmodule Console.PubSub.PipelineGateApproved, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.PipelineGateUpdated, do: use Piazza.PubSub.Event
 
@@ -43,10 +45,21 @@ defmodule Console.PubSub.ObjectStoreCreated, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.ObjectStoreUpdated, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.ObjectStoreDeleted, do: use Piazza.PubSub.Event
 
-
 defmodule Console.PubSub.PullRequestCreated, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.PullRequestUpdated, do: use Piazza.PubSub.Event
 
 defmodule Console.PubSub.ManagedNamespaceCreated, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.ManagedNamespaceUpdated, do: use Piazza.PubSub.Event
 defmodule Console.PubSub.ManagedNamespaceDeleted, do: use Piazza.PubSub.Event
+
+defmodule Console.PubSub.StackCreated, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackUpdated, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackDeleted, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackDetached, do: use Piazza.PubSub.Event
+
+defmodule Console.PubSub.StackRunCreated, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackRunUpdated, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackRunDeleted, do: use Piazza.PubSub.Event
+defmodule Console.PubSub.StackRunCompleted, do: use Piazza.PubSub.Event
+
+defmodule Console.PubSub.RunLogsCreated, do: use Piazza.PubSub.Event

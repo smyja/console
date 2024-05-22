@@ -29,19 +29,38 @@ type ServiceHelm struct {
 	ValuesFrom *corev1.SecretReference `json:"valuesFrom,omitempty"`
 	// +kubebuilder:validation:Optional
 	ValuesConfigMapRef *corev1.ConfigMapKeySelector `json:"valuesConfigMapRef,omitempty"`
+	// name of the helm release to use when applying
+	// +kubebuilder:validation:Optional
+	Release *string `json:"release,omitempty"`
+	// reference to a GitRepository to source the helm chart from (useful if you're using a multi-source configuration for values files)
+	// +kubebuilder:validation:Optional
+	RepositoryRef *corev1.ObjectReference `json:"repositoryRef"`
+	// arbitrary yaml values to overlay
 	// +kubebuilder:validation:Optional
 	Values *runtime.RawExtension `json:"values,omitempty"`
+	// individual values files to overlay
 	// +kubebuilder:validation:Optional
 	ValuesFiles []*string `json:"valuesFiles,omitempty"`
+	// chart to use
 	// +kubebuilder:validation:Optional
 	Chart *string `json:"chart,omitempty"`
+	// chart version to use
 	// +kubebuilder:validation:Optional
 	Version *string `json:"version,omitempty"`
+	// pointer to the FluxCD helm repository to use
 	// +kubebuilder:validation:Optional
 	Repository *NamespacedName `json:"repository,omitempty"`
 }
 
+type ServiceDependency struct {
+	// The name of a service on the same cluster this service depends on
+	Name string `json:"name"`
+}
+
 type SyncConfigAttributes struct {
+	// +kubebuilder:validation:Optional
+	CreateNamespace *bool `json:"createNamespace,omitempty"`
+
 	// +kubebuilder:validation:Optional
 	Labels map[string]string `json:"labels,omitempty"`
 
@@ -83,13 +102,17 @@ type ServiceSpec struct {
 	Bindings *Bindings `json:"bindings,omitempty"`
 	// Dependencies contain dependent services
 	// +kubebuilder:validation:Optional
-	Dependencies []corev1.ObjectReference `json:"dependencies,omitempty"`
+	Dependencies []ServiceDependency `json:"dependencies,omitempty"`
 	// Contexts contain dependent service context names
 	// +kubebuilder:validation:Optional
 	Contexts []string `json:"contexts,omitempty"`
 	// Templated should apply liquid templating to raw yaml files, defaults to true
 	// +kubebuilder:validation:Optional
 	Templated *bool `json:"templated,omitempty"`
+
+	// Detach determined if user want to delete or detach service
+	// +kubebuilder:validation:Optional
+	Detach bool `json:"detach,omitempty"`
 }
 
 type ServiceStatus struct {

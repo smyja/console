@@ -69,4 +69,25 @@ defmodule Console.Deployments.PubSub.NotificationsTest do
       :ok = Notifications.handle_event(event)
     end
   end
+
+  describe "StackRunCreated" do
+    test "it will fire on a stack run" do
+      run = insert(:stack_run)
+      router = insert(:notification_router, events: ["stack.run"])
+      insert(:router_sink, router: router)
+      insert(:router_filter, router: router, stack: run.stack)
+      me = self()
+      expect(HTTPoison, :post, fn _, body, _ ->
+        send me, {:body, body}
+        {:ok, %HTTPoison.Response{}}
+      end)
+
+      event = %PubSub.StackRunCreated{item: run}
+      :ok = Notifications.handle_event(event)
+
+      assert_receive {:body, body}
+
+      {:ok, _} = Jason.decode(body)
+    end
+  end
 end

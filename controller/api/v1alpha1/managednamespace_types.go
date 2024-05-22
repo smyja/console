@@ -31,6 +31,10 @@ type ManagedNamespaceSpec struct {
 	// Description a short description of the purpose of this namespace
 	// +kubebuilder:validation:Optional
 	Description *string `json:"description,omitempty"`
+
+	// Cascade specifies how owned resources are deleted
+	Cascade *Cascade `json:"cascade,omitempty"`
+
 	// Labels for this namespace
 	// +kubebuilder:validation:Optional
 	Labels map[string]string `json:"labels,omitempty"`
@@ -85,6 +89,9 @@ type ServiceTemplate struct {
 	// SyncConfig attributes to configure sync settings for this service
 	// +kubebuilder:validation:Optional
 	SyncConfig *SyncConfigAttributes `json:"syncConfig,omitempty"`
+	// Dependencies contain dependent services
+	// +kubebuilder:validation:Optional
+	Dependencies []corev1.ObjectReference `json:"dependencies,omitempty"`
 }
 
 //+kubebuilder:object:root=true

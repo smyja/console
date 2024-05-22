@@ -46,9 +46,18 @@ defmodule Console.GraphQl.Resolvers.Deployments.Service do
     |> paginate(args)
   end
 
+  def services_for_namespace(%{id: id}, args, %{context: %{current_user: user}}) do
+    Service.for_user(user)
+    |> Service.for_namespace(id)
+    |> service_filters(args)
+    |> maybe_search(Service, args)
+    |> Service.ordered()
+    |> paginate(args)
+  end
+
   def list_revisions(%{id: id}, args, _) do
     Revision.for_service(id)
-    |> Revision.ordered()
+    |> Revision.ordered(:ui)
     |> paginate(args)
   end
 
@@ -180,6 +189,7 @@ defmodule Console.GraphQl.Resolvers.Deployments.Service do
       {:cluster_id, id}, q -> Service.for_cluster(q, id)
       {:cluster, handle}, q -> Service.for_cluster_handle(q, handle)
       {:status, status}, q -> Service.for_status(q, status)
+      {:errored, true}, q -> Service.errored(q)
       _, q -> q
     end)
   end

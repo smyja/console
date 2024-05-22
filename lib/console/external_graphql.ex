@@ -2,7 +2,7 @@ defmodule Console.ExternalGraphQl do
   use Absinthe.Schema
   use Absinthe.Relay.Schema, :modern
   alias Console.Middleware.{SafeResolution, ErrorHandler}
-  alias Console.GraphQl.Resolvers.{Deployments}
+  alias Console.GraphQl.Resolvers.{Deployments, User}
 
   defmodule Plug do
     # used to hack phoenix routing for `forward`
@@ -43,13 +43,17 @@ defmodule Console.ExternalGraphQl do
   end
 
   object :kubernetes_unstructured do
+    field :group,    :string
+    field :version,  non_null(:string)
+    field :kind,     non_null(:string)
+    field :metadata, non_null(:metadata)
+
     field :raw, :map, resolve: fn
       %{raw: %{"metadata" => %{"managedFields" => _}} = raw}, _, _ ->
         {:ok, put_in(raw["metadata"]["managedFields"], [])}
       %{raw: raw}, _, _ -> {:ok, raw}
     end
 
-    field :metadata, non_null(:metadata)
   end
 
   import_types Absinthe.Type.Custom
@@ -71,7 +75,7 @@ defmodule Console.ExternalGraphQl do
   import_types Console.GraphQl.Kubernetes.Deployment
   import_types Console.GraphQl.Kubernetes.DaemonSet
 
-  @sources [Deployments]
+  @sources [Deployments, User]
 
   def context(ctx) do
     loader = make_dataloader(@sources, ctx)
@@ -94,11 +98,18 @@ defmodule Console.ExternalGraphQl do
   def middleware(middleware, _field, _object), do: middleware
 
   query do
+    field :deployment_settings, :deployment_settings do
+      middleware Authenticated, :cluster
+
+      resolve &Deployments.settings/2
+    end
+
     import_fields :public_service_queries
     import_fields :public_cluster_queries
     import_fields :public_pipeline_queries
     import_fields :public_backup_queries
     import_fields :public_global_queries
+    import_fields :public_stack_queries
   end
 
   mutation do
@@ -107,6 +118,7 @@ defmodule Console.ExternalGraphQl do
     import_fields :public_pipeline_mutations
     import_fields :public_backup_mutations
     import_fields :public_policy_mutations
+    import_fields :public_stack_mutations
   end
 
 

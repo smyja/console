@@ -30,12 +30,17 @@ import Apps from 'components/apps/Apps'
 
 import { Personas } from 'components/account/personas/Personas'
 
+import Home from 'components/home/Home'
+
 import { clusterRoutes } from './clusterRoutes'
 import { appsRoutes } from './appsRoutes'
 import { cdRoutes } from './cdRoutes'
 import { prRoutes } from './prRoutes'
 import { notificationsRoutes } from './notificationsRoutes'
 import { backupsRoutes } from './backupRoutes'
+import { kubernetesRoute } from './kubernetesRoute'
+import { policiesRoutes } from './policiesRoutes'
+import { stacksRoutes } from './stacksRoutes'
 
 const buildsRoutes = [
   <Route
@@ -208,8 +213,14 @@ export const consoleComponentRoutes = [
   /* CLUSTER */
   ...clusterRoutes,
 
+  /* STACKS */
+  ...stacksRoutes,
+
   /* INCIDENTS */
   // ...incidentsRoutes,
+
+  /* POLICIES */
+  ...policiesRoutes,
 
   /* BUILDS */
   ...buildsRoutes,
@@ -228,18 +239,27 @@ export const consoleComponentRoutes = [
 
   /* CONTINUOUS DEPLOYMENT */
   ...cdRoutes,
-]
+
+  /* KUBERNETES */
+  kubernetesRoute,
+].map((route, idx) => ({ ...route, key: route.props.path ?? idx }))
 
 export const consoleRoutes: RouteObject[] = [
   // ----- Old-style component-based routes -----
   {
     path: '*',
-    Component: () => <Routes>{consoleComponentRoutes}</Routes>,
+    element: <Routes>{consoleComponentRoutes}</Routes>,
   },
 
   // ----- New object-based routes -----
   // Index
-  { index: true, Component: Apps },
+  { index: true, element: <Apps /> },
+
+  // HOME
+  {
+    path: 'home',
+    element: <Home />,
+  },
 
   // PR QUEUE
   ...prRoutes,

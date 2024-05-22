@@ -10,3 +10,8 @@ names:
 - velero
 - rook
 - jaeger
+- flux
+- opentelemetry
+- kyverno
+- vitess
+- strimzi

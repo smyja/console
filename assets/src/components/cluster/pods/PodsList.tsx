@@ -88,7 +88,7 @@ function DeletePod({
   )
 }
 
-export type ContainerStatus = { name: string; readiness: ReadinessT }
+export type ContainerStatusT = { name: string; readiness: ReadinessT }
 
 type PodTableRow = {
   name?: string
@@ -107,7 +107,7 @@ type PodTableRow = {
   containers?: {
     ready?: number
     total?: number
-    statuses?: ContainerStatus[]
+    statuses?: ContainerStatusT[]
   }
   images?: string[]
 }
@@ -234,9 +234,7 @@ export const ColImages = columnHelper.accessor((row) => row?.images || [], {
         label={image}
         placement="left-start"
       >
-        <TruncateStart>
-          <span>{image}</span>
-        </TruncateStart>
+        <TruncateStart>{image}</TruncateStart>
       </Tooltip>
     ))
   },

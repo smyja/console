@@ -200,4 +200,50 @@ defmodule Console.Deployments.CronTest do
       :ok = Cron.cache_warm()
     end
   end
+
+  describe "#poll_stacks/0" do
+    test "it can generate new stack runs" do
+      stack = insert(:stack,
+        environment: [%{name: "ENV", value: "1"}], files: [%{path: "test.txt", content: "test"}],
+        git: %{ref: "main", folder: "terraform"}
+      )
+      expect(Console.Deployments.Git.Discovery, :sha, fn _, _ -> {:ok, "new-sha"} end)
+      expect(Console.Deployments.Git.Discovery, :changes, fn _, _, _, _ -> {:ok, ["terraform/main.tf"], "a commit message"} end)
+
+      Cron.poll_stacks()
+
+      [run] = Console.Schema.StackRun.for_stack(stack.id)
+              |> Console.Repo.all()
+
+      assert run.status == :queued
+      assert run.stack_id == stack.id
+    end
+  end
+
+  describe "#dequeue_stacks/0" do
+    test "it can mark stack runs as pending" do
+      stack = insert(:stack)
+      insert(:stack_run, stack: stack, status: :successful)
+      :timer.sleep(1)
+      run = insert(:stack_run, stack: stack, status: :queued)
+
+      Cron.dequeue_stacks()
+
+      dequeued = refetch(run)
+      assert dequeued.id == run.id
+      assert dequeued.status == :pending
+    end
+  end
+
+  describe "#prune_run_logs/0" do
+    test "it can remove unnnecessary run logs" do
+      rm = insert_list(3, :run_log, inserted_at: Timex.now() |> Timex.shift(days: -35))
+      keep = insert_list(3, :run_log)
+
+      Cron.prune_logs()
+
+      for l <- rm, do: refute refetch(l)
+      for l <- keep, do: assert refetch(l)
+    end
+  end
 end

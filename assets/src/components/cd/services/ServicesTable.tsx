@@ -1,31 +1,21 @@
-import {
-  ComponentProps,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { ComponentProps, useEffect, useMemo, useRef, useState } from 'react'
 import { EmptyState, TabPanel, Table } from '@pluralsh/design-system'
 import { useNavigate } from 'react-router'
 import { useTheme } from 'styled-components'
 import type { Row } from '@tanstack/react-table'
 import isEmpty from 'lodash/isEmpty'
-import { useDebounce } from '@react-hooks-library/core'
-import { type VirtualItem } from '@tanstack/react-virtual'
 import {
   ServiceDeploymentStatus,
   type ServiceDeploymentsRowFragment,
   useServiceDeploymentsQuery,
 } from 'generated/graphql'
 import { getServiceDetailsPath } from 'routes/cdRoutesConsts'
-import { Edge, extendConnection } from 'utils/graphql'
+import { Edge } from 'utils/graphql'
 import { FullHeightTableWrap } from 'components/utils/layout/FullHeightTableWrap'
 import LoadingIndicator from 'components/utils/LoadingIndicator'
 import { GqlError } from 'components/utils/Alert'
-import { useSlicePolling } from 'components/utils/tableFetchHelpers'
 
-import { POLL_INTERVAL } from '../ContinuousDeployment'
+import { useFetchPaginatedData } from '../utils/useFetchPaginatedData'
 
 import { ServicesFilters, StatusTabKey } from './ServicesFilters'
 import {
@@ -45,45 +35,32 @@ export function ServicesTable({
   const navigate = useNavigate()
   const [clusterIdInternal, setClusterId] = useState<string>('')
   const clusterId = clusterIdProp ?? clusterIdInternal
-  const [searchString, setSearchString] = useState()
-  const debouncedSearchString = useDebounce(searchString, 100)
   const tabStateRef = useRef<any>(null)
-  const [statusFilter, setStatusFilter] = useState<StatusTabKey>('ALL')
-  const [virtualSlice, setVirtualSlice] = useState<
-    | {
-        start: VirtualItem | undefined
-        end: VirtualItem | undefined
-      }
-    | undefined
-  >()
+  const [queryString, setQueryString] = useState()
+  const [queryStatusFilter, setQueryStatusFilter] =
+    useState<StatusTabKey>('ALL')
 
-  const queryResult = useServiceDeploymentsQuery({
-    variables: {
-      ...(clusterId ? { clusterId } : {}),
-      q: debouncedSearchString,
-      first: SERVICES_QUERY_PAGE_SIZE,
-      ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
-    },
-    fetchPolicy: 'cache-and-network',
-    // Important so loading will be updated on fetchMore to send to Table
-    notifyOnNetworkStatusChange: true,
-  })
   const {
-    error,
-    fetchMore,
+    data,
     loading,
-    data: currentData,
-    previousData,
-  } = queryResult
-  const data = currentData || previousData
-  const serviceDeployments = data?.serviceDeployments
-  const pageInfo = serviceDeployments?.pageInfo
-  const { refetch } = useSlicePolling(queryResult, {
-    virtualSlice,
-    pageSize: SERVICES_QUERY_PAGE_SIZE,
-    key: 'serviceDeployments',
-    interval: POLL_INTERVAL,
-  })
+    error,
+    refetch,
+    pageInfo,
+    fetchNextPage,
+    setVirtualSlice,
+  } = useFetchPaginatedData(
+    {
+      queryHook: useServiceDeploymentsQuery,
+      pageSize: SERVICES_QUERY_PAGE_SIZE,
+      queryKey: 'serviceDeployments',
+    },
+    {
+      q: queryString,
+      ...(clusterId ? { clusterId } : {}),
+      ...(queryStatusFilter !== 'ALL' ? { status: queryStatusFilter } : {}),
+    }
+  )
+
   const statusCounts = useMemo<Record<StatusTabKey, number | undefined>>(
     () => ({
       ALL: data?.serviceStatuses?.reduce(
@@ -119,21 +96,6 @@ export function ServicesTable({
       [refetch]
     )
 
-  const fetchNextPage = useCallback(() => {
-    if (!pageInfo?.endCursor) {
-      return
-    }
-    fetchMore({
-      variables: { after: pageInfo.endCursor },
-      updateQuery: (prev, { fetchMoreResult }) =>
-        extendConnection(
-          prev,
-          fetchMoreResult.serviceDeployments,
-          'serviceDeployments'
-        ),
-    })
-  }, [fetchMore, pageInfo?.endCursor])
-
   if (error) {
     return <GqlError error={error} />
   }
@@ -151,10 +113,8 @@ export function ServicesTable({
       }}
     >
       <ServicesFilters
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        searchString={searchString}
-        setSearchString={setSearchString}
+        setQueryStatusFilter={setQueryStatusFilter}
+        setQueryString={setQueryString}
         clusterId={clusterId}
         setClusterId={clusterIdProp ? undefined : setClusterId}
         tabStateRef={tabStateRef}

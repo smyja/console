@@ -1,6 +1,9 @@
 defmodule Console do
   @type error :: {:error, term}
 
+  def coalesce(nil, val), do: val
+  def coalesce(val, _), do: val
+
   def rate_limit(), do: {"global", :timer.seconds(1), Console.conf(:qps)}
 
   def provider(), do: Console.conf(:provider)
@@ -48,12 +51,26 @@ defmodule Console do
   def remove_ids(l) when is_list(l), do: Enum.map(l, &remove_ids/1)
   def remove_ids(v), do: v
 
+  def drop_nils(%{} = map) do
+    Enum.filter(map, fn {_, v} -> not is_nil(v) end)
+    |> Map.new()
+  end
+
+  def clean(val) do
+    mapify(val)
+    |> remove_ids()
+  end
+
   def string_map(%{} = map) do
     Poison.encode!(map)
     |> Poison.decode!()
   end
 
   def url(path), do: Path.join(Console.conf(:url), path)
+
+  def graphql_endpoint(), do: url("/gql")
+
+  def socket_endpoint(), do: "wss://#{conf(:hostname)}/socket"
 
   def is_set(var) do
     case System.get_env(var) do
@@ -200,6 +217,8 @@ defmodule Console do
       _ -> Map.put(map, k, put_path(%{}, rest, value))
     end
   end
+
+  def lines(str), do: String.split(str, ~r/\R/)
 
   def storage, do: Console.Storage.Git
 end
