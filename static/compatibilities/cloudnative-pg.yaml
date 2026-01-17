@@ -29,7 +29,7 @@ versions:
         annotation to the stable `spec.postgresql.synchronous.failoverQuorum` field
         (update manifests accordingly if you used the alpha feature).]
   chart_version: 0.27.0
-  images: ['ghcr.io/cloudnative-pg/cloudnative-pg:1.28.0']
+  images: []
 - version: 1.27.0
   kube: ['1.33', '1.32', '1.31']
   requirements: []
@@ -75,7 +75,7 @@ versions:
         \ to declarative shortcuts; hibernate status removed\u2014do not upgrade plugin/operator\
         \ unless you\u2019re ready to adopt declarative hibernation."]
   chart_version: 0.24.0
-  images: ['ghcr.io/cloudnative-pg/cloudnative-pg:1.26.0']
+  images: []
 - version: 1.25.0
   kube: ['1.32', '1.31', '1.30', '1.29']
   requirements: []
@@ -160,7 +160,7 @@ versions:
         minor release at a time (instead of two), with 3 months supplementary support
         for the previous minor. Plan upgrades accordingly.']
   chart_version: 0.21.1
-  images: ['ghcr.io/cloudnative-pg/cloudnative-pg:1.23.0']
+  images: []
 - version: 1.22.0
   kube: ['1.28', '1.27', '1.26']
   requirements: []
@@ -259,7 +259,7 @@ versions:
     breaking_changes: ['PostgreSQL 10 is no longer supported; CloudNativePG now supports
         PostgreSQL 11+ (plan migrations accordingly, ideally toward PostgreSQL 15).']
   chart_version: 0.17.0
-  images: ['busybox:latest', 'ghcr.io/cloudnative-pg/cloudnative-pg:1.19.0']
+  images: ['ghcr.io/cloudnative-pg/cloudnative-pg:1.19.0']
 - version: 1.18.0
   kube: ['1.27', '1.26', '1.25', '1.24', '1.23']
   requirements: []
@@ -283,7 +283,7 @@ versions:
         behavior and resource usage compared to manual slot management; review settings/monitoring
         if you previously managed physical slots yourself.]
   chart_version: 0.16.0
-  images: ['busybox:latest', 'ghcr.io/cloudnative-pg/cloudnative-pg:1.18.0']
+  images: ['ghcr.io/cloudnative-pg/cloudnative-pg:1.18.0']
 - version: 1.17.0
   kube: ['1.24', '1.23', '1.22']
   requirements: []
