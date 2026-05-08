@@ -4,18 +4,14 @@ release_url: https://github.com/argoproj/argo-cd/releases/tag/v{vsn}
 helm_repository_url: https://argoproj.github.io/argo-helm
 eolApiSlug: argocd
 versions:
-- version: 3.3.9
+- version: 3.4.1
   kube: ['1.36', '1.35', '1.34']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: ''
-    chart_updates: []
-    features: []
-    breaking_changes: []
-  chart_version: 9.5.11
+  summary: null
+  chart_version: 9.5.12
   images: ['ecr-public.aws.com/docker/library/redis:8.2.3-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
-    'quay.io/argoproj/argocd:v3.3.9']
+    'quay.io/argoproj/argocd:v3.4.1']
 - version: 3.3.8
   kube: ['1.36', '1.35', '1.34']
   requirements: []
