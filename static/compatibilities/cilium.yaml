@@ -1081,42 +1081,14 @@ versions:
   images: ['quay.io/cilium/cilium:v1.13.7@sha256:3b084617febd708aa9d88de2472c6faf9aee71884112725e8511bca628ce5cf1',
     'quay.io/cilium/operator-generic:v1.13.7@sha256:0ec1bc5d9ecc444a890aaa2e0f397e77d15f1832910f1c20be3adc535688baba']
   eolAt: '2024-07-24'
-- version: 1.13.2
+- version: 1.13.3
   kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: "- **Use a newer Helm chart when upgrading to Cilium v1.13.2.**\
-      \ The 1.13.2 release notes explicitly warn: *\u201CWhen updating to this release,\
-      \ make sure that you are using new helm chart version.\u201D*\n- **If using\
-      \ cert-manager for certificate generation, you now must configure an issuer.**\
-      \ Change introduced via Helm: *\u201Cmandate issuer configuration when using\
-      \ cert-manager to generate certificates.\u201D* Ensure your values set the cert-manager\
-      \ issuer (and kind) for any Cilium components that request cert-manager-managed\
-      \ certs (commonly the clustermesh-apiserver, Hubble, and/or ingress/gateway\
-      \ TLS depending on your setup).\n- **ENI postStart hook location/behavior changed\
-      \ (AWS ENI IPAM users).** The postStart ENI script was moved from the nodeinit\
-      \ pod to the agent pod; there was also a Helm fix related to executing `poststart-eni.bash`\
-      \ in the agent DaemonSet. If you rely on AWS ENI IPAM / nodeinit behavior, validate\
-      \ your current values around `nodeinit`/ENI settings and confirm postStart runs\
-      \ on the agent after the upgrade.\n"
-    chart_updates: ['Helm: require explicit cert-manager issuer configuration for
-        generated certificates.', 'Helm: fix `poststart-eni.bash` execution in the
-        Cilium agent DaemonSet.', 'Operational packaging note: move the postStart
-        ENI script from `nodeinit` to the agent pod (impacts how/where initialization
-        runs).']
-    features: ["Security: v1.13.2 includes a fix for advisory GHSA-pg5p-wwp8-97g8;\
-        \ upgrading is recommended if you\u2019re impacted.", 'BGP: adds a `cilium
-        bgp peers` CLI command to show the operational state of BGP peers.', 'Datapath/host-routing:
-        adds support for L2-less devices when using fast-forward (BPF-based host routing).']
-    breaking_changes: ['Helm/cert-manager: upgrades may fail or certificates may not
-        be issued if you use cert-manager without specifying an issuer; the chart
-        now enforces issuer configuration.', 'Operational change (AWS ENI IPAM context):
-        the ENI postStart workflow moved from nodeinit to the agent pod, which can
-        change troubleshooting and ordering expectations around node initialization.']
-  chart_version: 1.13.2
-  images: ['quay.io/cilium/cilium:v1.13.2@sha256:85708b11d45647c35b9288e0de0706d24a5ce8a378166cadc700f756cc1a38d6',
-    'quay.io/cilium/operator-generic:v1.13.2@sha256:a1982c0a22297aaac3563e428c330e17668305a41865a842dec53d241c5490ab']
+  summary: null
+  chart_version: 1.13.3
+  images: ['quay.io/cilium/cilium:v1.13.3@sha256:77176464a1e11ea7e89e984ac7db365e7af39851507e94f137dcf56c87746314',
+    'quay.io/cilium/operator-generic:v1.13.3@sha256:fa7003cbfdf8358cb71786afebc711b26e5e44a2ed99bd4944930bba915b8910']
   eolAt: '2024-07-24'
 - version: 1.13.0
   kube: ['1.26', '1.25', '1.24']
@@ -1212,33 +1184,14 @@ versions:
   chart_version: 1.12.14
   images: ['quay.io/cilium/cilium:v1.12.14@sha256:a54b28a5c15e14f3491c772ca7cfa86266a2b1efb85326bc1ab6c95b91aeaa77',
     'quay.io/cilium/operator-generic:v1.12.14@sha256:b9ce66384c74f79a2982ef3a4602f649d49e9b8b79b58db5faa344c7451cb7c9']
-- version: 1.12.9
+- version: 1.12.10
   kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: '- **Use the matching newer Cilium Helm chart when upgrading to
-      v1.12.9.** The release explicitly notes to upgrade the chart alongside the app.
-
-      - **cert-manager users:** chart now **mandates an issuer configuration** when
-      using cert-manager to generate certificates. Ensure `certManagerIssuerRef`/issuer
-      settings are provided (chart validation got stricter again compared to earlier
-      relaxations).
-
-      '
-    chart_updates: ['Helm chart validation/behavior updated around cert-manager: issuer
-        configuration is now required when cert-manager is enabled for certificate
-        generation.']
-    features: [Security fix included (GHSA-pg5p-wwp8-97g8) in v1.12.9; primary reason
-        to take this patch., 'Envoy sidecar/proxy components are bumped (to Envoy
-        v1.23.8, also mentions v1.23.7 during backports), which can indirectly change
-        L7 behavior/performance and compatibility.']
-    breaking_changes: ['If you rely on cert-manager auto-generated certs without explicitly
-        configuring an issuer, the v1.12.9 Helm chart upgrade can fail or block deployment
-        until issuer settings are supplied.']
-  chart_version: 1.12.9
-  images: ['quay.io/cilium/cilium:v1.12.9@sha256:677e7a906506b8a13fecb6f0f783ed647b36036786c8c640ff98e25ec2f2ab1f',
-    'quay.io/cilium/operator-generic:v1.12.9@sha256:cc8d7b222f63812c691a685b32fedab8a805d243da720653cdc2ff0c4a562673']
+  summary: null
+  chart_version: 1.12.10
+  images: ['quay.io/cilium/cilium:v1.12.10@sha256:2cbfdf737b349c2733643f1943c7a263df63fbb86852f267f64c49cb5dfbb230',
+    'quay.io/cilium/operator-generic:v1.12.10@sha256:1d78da0fcbf7ccfb32eb31f8b3b361628e91ab5f42d17ff437a82969c773fa1e']
 - version: 1.12.0
   kube: ['1.26', '1.25', '1.24']
   requirements: []
@@ -1299,30 +1252,14 @@ versions:
   chart_version: 1.12.0
   images: ['quay.io/cilium/cilium:v1.12.0@sha256:079baa4fa1b9fe638f96084f4e0297c84dd4fb215d29d2321dcbe54273f63ade',
     'quay.io/cilium/operator-generic:v1.12.0@sha256:bb2a42eda766e5d4a87ee8a5433f089db81b72dd04acf6b59fcbb445a95f9410']
-- version: 1.11.16
+- version: 1.11.17
   kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: "- **Use a newer Helm chart when moving to Cilium v1.11.16.** The\
-      \ v1.11.16 release notes explicitly call out that upgrading to this patch requires\
-      \ updating the Helm chart version as well (don\u2019t just bump images).\n-\
-      \ No specific `values.yaml` key renames/additions are mentioned in the provided\
-      \ notes; expect this to be a **chart packaging/security fix update** rather\
-      \ than a config change. Still, run a `helm diff upgrade` against your current\
-      \ values to confirm no new required values appear.\n"
-    chart_updates: [v1.11.16 release note explicitly requires using a newer Helm chart
-        version (likely to address the security advisory GHSA-pg5p-wwp8-97g8 and/or
-        chart templating changes)., 'Image digests updated for v1.11.15/1.11.16; ensure
-        your chart pulls the matching images/digests for all subcomponents you deploy
-        (agent, operator, hubble-relay, clustermesh-apiserver, etc.).']
-    features: [Bugtool gains a flag to exclude endpoint objects (useful for slimmer/supportable
-        diagnostics)., Hubble UI supports being served behind an ingress on non-root
-        paths (URLs not starting at `/`).]
-    breaking_changes: []
-  chart_version: 1.11.16
-  images: ['quay.io/cilium/cilium:v1.11.16@sha256:d2f2632c997a027ee4e540432edb4d8594e78e33315427e7ec3c06b473ec1e4e',
-    'quay.io/cilium/operator-generic:v1.11.16@sha256:ea3fbe5ab65efc41228d716a64804b6fca9e2299835c3d39ae1cb248c1594c55']
+  summary: null
+  chart_version: 1.11.17
+  images: ['quay.io/cilium/cilium:v1.11.17@sha256:6c3132e34e66734752de798eb8519dafa77b9f0da1033e9bed7f7be30ce10358',
+    'quay.io/cilium/operator-generic:v1.11.17@sha256:f77cf55ebc47174fb64fd8ffd030015e55817ed9a6bfab46d0ee917a7ed198e5']
 - version: 1.11.6
   kube: ['1.26', '1.25', '1.24']
   requirements: []
