@@ -5,32 +5,14 @@ helm_repository_url: https://aws.github.io/eks-charts
 helm_values: clusterName=example
 chart_name: aws-load-balancer-controller
 versions:
-- version: 3.2.2
+- version: 3.3.0
   kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27', '1.26',
     '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: "- No Helm values changes are explicitly called out in the provided\
-      \ release notes for **v3.2.2**.\n- Note from **v3.2.0** (already in your starting\
-      \ version): the Helm chart previously **backfilled/exposed concurrency controls**\
-      \ and added **namespace selectors** for Service/Ingress webhooks; ensure your\
-      \ current values don\u2019t conflict if you pinned older chart defaults.\n-\
-      \ For this upgrade step (**3.2.0 \u2192 3.2.2**), plan for a standard `helm\
-      \ upgrade` with the new image tag and re-apply CRDs as instructed."
-    chart_updates: [No Helm chart-specific changes are described in the v3.2.2 notes
-        you provided (most changes are controller code/docs/CI).]
-    features: ['Ingress-to-Gateway (i2g) translation now supports additional annotations/features:
-        `ssl-redirect`, `auth`, and `jwt-validation` translation.', "ListenerSet handling\
-        \ is safer when Gateway API CRDs are missing: the controller will ignore ListenerSet\
-        \ resources if the CRD isn\u2019t installed (reduces noisy errors in mixed/partial\
-        \ Gateway API installs).", User-Agent override support was added (useful for
-        identifying controller traffic in AWS API logs/metrics).]
-    breaking_changes: ['No breaking changes are called out for v3.2.2 in the provided
-        notes. (The major breaking items in this minor line were introduced in v3.2.0:
-        Gateway API v1.5 move and stricter multi-tag VPC lookup behavior.)']
-  chart_version: 3.2.2
-  images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.2.2']
+  summary: null
+  chart_version: 3.3.0
+  images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.3.0']
 - version: 3.2.0
   kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27', '1.26',
     '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
