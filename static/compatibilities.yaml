@@ -147,6 +147,17 @@ addons:
   release_url: https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v{vsn}
   helm_repository_url: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
   versions:
+  - version: 1.60.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.60.0
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.11.0-eksbuild.5', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.16.0-eksbuild.5',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.2.0-eksbuild.4', 'public.ecr.aws/csi-components/csi-resizer:v2.1.0-eksbuild.5',
+      'public.ecr.aws/csi-components/livenessprobe:v2.18.0-eksbuild.5', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.60.0',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260512-1f34ef0df3-master']
   - version: 1.59.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
@@ -601,6 +612,16 @@ addons:
   release_url: https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v{vsn}
   helm_repository_url: https://kubernetes-sigs.github.io/aws-efs-csi-driver
   versions:
+  - version: 3.2.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19', '1.18', '1.17']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 4.2.0
+    images: ['public.ecr.aws/csi-components/csi-node-driver-registrar:v2.16.0-eksbuild.4',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.2.0-eksbuild.3', 'public.ecr.aws/csi-components/livenessprobe:v2.18.0-eksbuild.4',
+      'public.ecr.aws/efs-csi-driver/amazon/aws-efs-csi-driver:v3.2.0']
   - version: 3.1.0
     kube: []
     requirements: []
@@ -696,33 +717,14 @@ addons:
   helm_values: clusterName=example
   chart_name: aws-load-balancer-controller
   versions:
-  - version: 3.2.2
+  - version: 3.3.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: "- No Helm values changes are explicitly called out in the provided\
-        \ release notes for **v3.2.2**.\n- Note from **v3.2.0** (already in your starting\
-        \ version): the Helm chart previously **backfilled/exposed concurrency controls**\
-        \ and added **namespace selectors** for Service/Ingress webhooks; ensure your\
-        \ current values don\u2019t conflict if you pinned older chart defaults.\n\
-        - For this upgrade step (**3.2.0 \u2192 3.2.2**), plan for a standard `helm\
-        \ upgrade` with the new image tag and re-apply CRDs as instructed."
-      chart_updates: [No Helm chart-specific changes are described in the v3.2.2 notes
-          you provided (most changes are controller code/docs/CI).]
-      features: ['Ingress-to-Gateway (i2g) translation now supports additional annotations/features:
-          `ssl-redirect`, `auth`, and `jwt-validation` translation.', "ListenerSet\
-          \ handling is safer when Gateway API CRDs are missing: the controller will\
-          \ ignore ListenerSet resources if the CRD isn\u2019t installed (reduces\
-          \ noisy errors in mixed/partial Gateway API installs).", User-Agent override
-          support was added (useful for identifying controller traffic in AWS API
-          logs/metrics).]
-      breaking_changes: ['No breaking changes are called out for v3.2.2 in the provided
-          notes. (The major breaking items in this minor line were introduced in v3.2.0:
-          Gateway API v1.5 move and stricter multi-tag VPC lookup behavior.)']
-    chart_version: 3.2.2
-    images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.2.2']
+    summary: null
+    chart_version: 3.3.0
+    images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.3.0']
   - version: 3.2.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
@@ -2674,35 +2676,12 @@ addons:
   helm_values: debug.verbose=flow
   eolApiSlug: cilium
   versions:
-  - version: 1.19.3
-    kube: ['1.35', '1.34', '1.33']
+  - version: 1.19.4
+    kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: '- **New Helm values:** `configDriftDetection` was added (with
-        docs) to help detect/flag configuration drift.
-
-        - **Init container compatibility:** chart now uses **bash instead of sh**
-        in init containers (notably for **Ubuntu 24.04** compatibility).
-
-        - No other explicit Helm values changes were called out in the provided notes;
-        expect a patch-level upgrade otherwise (review your rendered manifests for
-        any incidental template changes).'
-      chart_updates: ['Helm chart/docs: added `configDriftDetection` values and documentation.',
-        'Helm chart: init containers now invoke `bash` instead of `sh` (Ubuntu 24.04
-          compatibility).', Installation metadata updated (image digests updated for
-          patch releases; ensure your chart points to v1.19.3 images).]
-      features: [Config drift detection support via new `configDriftDetection` Helm
-          values (operational feature)., 'BIG TCP for tunnels now probes kernel support
-          rather than relying solely on a config toggle, making enablement safer/automatic
-          when supported.', 'BGP CLI enhancement: `bgp/routes` adds a `--with-attrs`
-          option (operational visibility).']
-      breaking_changes: ['No explicit breaking changes were listed for v1.19.3 in
-          the provided notes; this looks like a patch release focused on fixes. The
-          major behavioral/breaking items remain those introduced in v1.19.0 (e.g.,
-          BGP v1 API removal, policy selector defaulting to local cluster, deprecated
-          policy fields).']
-    chart_version: 1.19.3
+    summary: null
+    chart_version: 1.19.4
     images: []
   - version: 1.19.0
     kube: ['1.35', '1.34', '1.33']
@@ -2747,6 +2726,15 @@ addons:
           ensure all nodes are correctly enrolled/compatible before turning it on.]
     chart_version: 1.19.0
     images: []
+  - version: 1.18.10
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.18.10
+    images: ['quay.io/cilium/cilium-envoy:v1.36.6-1778235340-b87d1e32f522b33bd51701c6476d199326f01496@sha256:71d4fa0ec45e8d546dbd5604e169dc77fe92be63b799313bff031d00d89762e3',
+      'quay.io/cilium/cilium:v1.18.10@sha256:dd573bc2f7213dbd978e564a363ecaad060e9578ed557b92b53e42eeeb0f2294',
+      'quay.io/cilium/operator-generic:v1.18.10@sha256:ab08d58fd12e98d9a9601d4b52beee839ff2537fba73d262aabad222454a16b3']
   - version: 1.18.6
     kube: ['1.35', '1.34', '1.33']
     requirements: []
@@ -2860,6 +2848,15 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.34.4-1753677767-266d5a01d1d55bd1d60148f991b98dac0390d363@sha256:231b5bd9682dfc648ae97f33dcdc5225c5a526194dda08124f5eded833bf02bf',
       'quay.io/cilium/cilium:v1.18.0@sha256:dfea023972d06ec183cfa3c9e7809716f85daaff042e573ef366e9ec6a0c0ab2',
       'quay.io/cilium/operator-generic:v1.18.0@sha256:398378b4507b6e9db22be2f4455d8f8e509b189470061b0f813f0fabaf944f51']
+  - version: 1.17.16
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.17.16
+    images: ['quay.io/cilium/cilium-envoy:v1.36.6-1778235340-b87d1e32f522b33bd51701c6476d199326f01496@sha256:71d4fa0ec45e8d546dbd5604e169dc77fe92be63b799313bff031d00d89762e3',
+      'quay.io/cilium/cilium:v1.17.16@sha256:4efb37b791561bc5a2c6d746bdd6f52a9c393623d2426e8c0877cc389610477c',
+      'quay.io/cilium/operator-generic:v1.17.16@sha256:42955931dd62c9c2ea906d78eed0b651b22e70d59cd4877381f57bb98e4a09ae']
   - version: 1.17.12
     kube: ['1.35', '1.34', '1.33']
     requirements: []
@@ -3763,44 +3760,14 @@ addons:
     images: ['quay.io/cilium/cilium:v1.13.7@sha256:3b084617febd708aa9d88de2472c6faf9aee71884112725e8511bca628ce5cf1',
       'quay.io/cilium/operator-generic:v1.13.7@sha256:0ec1bc5d9ecc444a890aaa2e0f397e77d15f1832910f1c20be3adc535688baba']
     eolAt: '2024-07-24'
-  - version: 1.13.2
+  - version: 1.13.3
     kube: ['1.27', '1.26', '1.25']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: "- **Use a newer Helm chart when upgrading to Cilium v1.13.2.**\
-        \ The 1.13.2 release notes explicitly warn: *\u201CWhen updating to this release,\
-        \ make sure that you are using new helm chart version.\u201D*\n- **If using\
-        \ cert-manager for certificate generation, you now must configure an issuer.**\
-        \ Change introduced via Helm: *\u201Cmandate issuer configuration when using\
-        \ cert-manager to generate certificates.\u201D* Ensure your values set the\
-        \ cert-manager issuer (and kind) for any Cilium components that request cert-manager-managed\
-        \ certs (commonly the clustermesh-apiserver, Hubble, and/or ingress/gateway\
-        \ TLS depending on your setup).\n- **ENI postStart hook location/behavior\
-        \ changed (AWS ENI IPAM users).** The postStart ENI script was moved from\
-        \ the nodeinit pod to the agent pod; there was also a Helm fix related to\
-        \ executing `poststart-eni.bash` in the agent DaemonSet. If you rely on AWS\
-        \ ENI IPAM / nodeinit behavior, validate your current values around `nodeinit`/ENI\
-        \ settings and confirm postStart runs on the agent after the upgrade.\n"
-      chart_updates: ['Helm: require explicit cert-manager issuer configuration for
-          generated certificates.', 'Helm: fix `poststart-eni.bash` execution in the
-          Cilium agent DaemonSet.', 'Operational packaging note: move the postStart
-          ENI script from `nodeinit` to the agent pod (impacts how/where initialization
-          runs).']
-      features: ["Security: v1.13.2 includes a fix for advisory GHSA-pg5p-wwp8-97g8;\
-          \ upgrading is recommended if you\u2019re impacted.", 'BGP: adds a `cilium
-          bgp peers` CLI command to show the operational state of BGP peers.', 'Datapath/host-routing:
-          adds support for L2-less devices when using fast-forward (BPF-based host
-          routing).']
-      breaking_changes: ['Helm/cert-manager: upgrades may fail or certificates may
-          not be issued if you use cert-manager without specifying an issuer; the
-          chart now enforces issuer configuration.', 'Operational change (AWS ENI
-          IPAM context): the ENI postStart workflow moved from nodeinit to the agent
-          pod, which can change troubleshooting and ordering expectations around node
-          initialization.']
-    chart_version: 1.13.2
-    images: ['quay.io/cilium/cilium:v1.13.2@sha256:85708b11d45647c35b9288e0de0706d24a5ce8a378166cadc700f756cc1a38d6',
-      'quay.io/cilium/operator-generic:v1.13.2@sha256:a1982c0a22297aaac3563e428c330e17668305a41865a842dec53d241c5490ab']
+    summary: null
+    chart_version: 1.13.3
+    images: ['quay.io/cilium/cilium:v1.13.3@sha256:77176464a1e11ea7e89e984ac7db365e7af39851507e94f137dcf56c87746314',
+      'quay.io/cilium/operator-generic:v1.13.3@sha256:fa7003cbfdf8358cb71786afebc711b26e5e44a2ed99bd4944930bba915b8910']
     eolAt: '2024-07-24'
   - version: 1.13.0
     kube: ['1.26', '1.25', '1.24']
@@ -3897,34 +3864,14 @@ addons:
     chart_version: 1.12.14
     images: ['quay.io/cilium/cilium:v1.12.14@sha256:a54b28a5c15e14f3491c772ca7cfa86266a2b1efb85326bc1ab6c95b91aeaa77',
       'quay.io/cilium/operator-generic:v1.12.14@sha256:b9ce66384c74f79a2982ef3a4602f649d49e9b8b79b58db5faa344c7451cb7c9']
-  - version: 1.12.9
+  - version: 1.12.10
     kube: ['1.27', '1.26', '1.25']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: '- **Use the matching newer Cilium Helm chart when upgrading to
-        v1.12.9.** The release explicitly notes to upgrade the chart alongside the
-        app.
-
-        - **cert-manager users:** chart now **mandates an issuer configuration** when
-        using cert-manager to generate certificates. Ensure `certManagerIssuerRef`/issuer
-        settings are provided (chart validation got stricter again compared to earlier
-        relaxations).
-
-        '
-      chart_updates: ['Helm chart validation/behavior updated around cert-manager:
-          issuer configuration is now required when cert-manager is enabled for certificate
-          generation.']
-      features: [Security fix included (GHSA-pg5p-wwp8-97g8) in v1.12.9; primary reason
-          to take this patch., 'Envoy sidecar/proxy components are bumped (to Envoy
-          v1.23.8, also mentions v1.23.7 during backports), which can indirectly change
-          L7 behavior/performance and compatibility.']
-      breaking_changes: ['If you rely on cert-manager auto-generated certs without
-          explicitly configuring an issuer, the v1.12.9 Helm chart upgrade can fail
-          or block deployment until issuer settings are supplied.']
-    chart_version: 1.12.9
-    images: ['quay.io/cilium/cilium:v1.12.9@sha256:677e7a906506b8a13fecb6f0f783ed647b36036786c8c640ff98e25ec2f2ab1f',
-      'quay.io/cilium/operator-generic:v1.12.9@sha256:cc8d7b222f63812c691a685b32fedab8a805d243da720653cdc2ff0c4a562673']
+    summary: null
+    chart_version: 1.12.10
+    images: ['quay.io/cilium/cilium:v1.12.10@sha256:2cbfdf737b349c2733643f1943c7a263df63fbb86852f267f64c49cb5dfbb230',
+      'quay.io/cilium/operator-generic:v1.12.10@sha256:1d78da0fcbf7ccfb32eb31f8b3b361628e91ab5f42d17ff437a82969c773fa1e']
   - version: 1.12.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -3987,30 +3934,14 @@ addons:
     chart_version: 1.12.0
     images: ['quay.io/cilium/cilium:v1.12.0@sha256:079baa4fa1b9fe638f96084f4e0297c84dd4fb215d29d2321dcbe54273f63ade',
       'quay.io/cilium/operator-generic:v1.12.0@sha256:bb2a42eda766e5d4a87ee8a5433f089db81b72dd04acf6b59fcbb445a95f9410']
-  - version: 1.11.16
+  - version: 1.11.17
     kube: ['1.27', '1.26', '1.25']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: "- **Use a newer Helm chart when moving to Cilium v1.11.16.**\
-        \ The v1.11.16 release notes explicitly call out that upgrading to this patch\
-        \ requires updating the Helm chart version as well (don\u2019t just bump images).\n\
-        - No specific `values.yaml` key renames/additions are mentioned in the provided\
-        \ notes; expect this to be a **chart packaging/security fix update** rather\
-        \ than a config change. Still, run a `helm diff upgrade` against your current\
-        \ values to confirm no new required values appear.\n"
-      chart_updates: [v1.11.16 release note explicitly requires using a newer Helm
-          chart version (likely to address the security advisory GHSA-pg5p-wwp8-97g8
-          and/or chart templating changes)., 'Image digests updated for v1.11.15/1.11.16;
-          ensure your chart pulls the matching images/digests for all subcomponents
-          you deploy (agent, operator, hubble-relay, clustermesh-apiserver, etc.).']
-      features: [Bugtool gains a flag to exclude endpoint objects (useful for slimmer/supportable
-          diagnostics)., Hubble UI supports being served behind an ingress on non-root
-          paths (URLs not starting at `/`).]
-      breaking_changes: []
-    chart_version: 1.11.16
-    images: ['quay.io/cilium/cilium:v1.11.16@sha256:d2f2632c997a027ee4e540432edb4d8594e78e33315427e7ec3c06b473ec1e4e',
-      'quay.io/cilium/operator-generic:v1.11.16@sha256:ea3fbe5ab65efc41228d716a64804b6fca9e2299835c3d39ae1cb248c1594c55']
+    summary: null
+    chart_version: 1.11.17
+    images: ['quay.io/cilium/cilium:v1.11.17@sha256:6c3132e34e66734752de798eb8519dafa77b9f0da1033e9bed7f7be30ce10358',
+      'quay.io/cilium/operator-generic:v1.11.17@sha256:f77cf55ebc47174fb64fd8ffd030015e55817ed9a6bfab46d0ee917a7ed198e5']
   - version: 1.11.6
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -7643,6 +7574,17 @@ addons:
   helm_repository_url: https://prometheus-community.github.io/helm-charts
   chart_changelog_url: https://raw.githubusercontent.com/prometheus-community/helm-charts/refs/heads/main/charts/kube-prometheus-stack/UPGRADE.md
   versions:
+  - version: 85.0.3
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 85.0.3
+    images: ['docker.io/grafana/grafana:13.0.1-security-01', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.2',
+      'quay.io/kiwigrid/k8s-sidecar:2.7.3', 'quay.io/prometheus-operator/prometheus-operator:v0.90.1',
+      'quay.io/prometheus/alertmanager:v0.32.1', 'quay.io/prometheus/node-exporter:v1.11.1-distroless',
+      'quay.io/prometheus/prometheus:v3.11.3-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.18.0']
   - version: 84.5.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
@@ -10058,6 +10000,12 @@ addons:
   git_url: https://github.com/open-telemetry/opentelemetry-operator
   release_url: https://github.com/open-telemetry/opentelemetry-operator/releases/tag/v{vsn}
   versions:
+  - version: 0.151.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25']
+    requirements: []
+    incompatibilities: []
+    summary: null
   - version: 0.150.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
@@ -12227,7 +12175,7 @@ addons:
       'openpolicyagent/gatekeeper:v3.13.0']
     eolAt: '2024-02-05'
   - version: 3.12.0
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary:
@@ -12264,36 +12212,6 @@ addons:
     images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.12.0',
       'openpolicyagent/gatekeeper:v3.12.0']
     eolAt: '2023-11-01'
-  - version: 3.11.1
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary:
-      helm_changes: "### Helm chart / values changes\n- No explicit **values.yaml**\
-        \ changes are called out in the provided notes for `v3.11.1`.\n- For `v3.11.0`,\
-        \ two Helm-related fixes may affect installs/upgrades:\n  - Post-install/post-upgrade\
-        \ jobs are allowed again (fix for Helm hook/job behavior).\n  - Chart avoids\
-        \ mixing `pod-security.kubernetes.io/*` labels with `ignore` labels (may change\
-        \ rendered namespace labels if you set either).\n\n### Upgrade implications\n\
-        - If you rely on Helm hooks/jobs (CRD install jobs, certgen jobs, etc.), `v3.11.0`\
-        \ includes a fix that may change whether those run as expected during upgrade.\n\
-        - If you set Pod Security Admission (PSA) labels on the Gatekeeper namespace\
-        \ via values, verify the resulting labels after upgrade to ensure you\u2019\
-        re not depending on the previously mixed/invalid combination.\n"
-      chart_updates: ['Helm: allow installation of post-install and post-upgrade jobs
-          (fixes hook/job install behavior).', 'Helm: avoid mixing Pod Security `ignore`
-          labels with PSA podSecurity labels (label rendering/validation fix).', 'Chart
-          metadata: adds an icon to Chart.yaml (cosmetic).']
-      features: [External Data is promoted to beta; external data providers now require
-          TLS/mTLS., 'Gator CLI is promoted to beta and now supports tracing, AdmissionReview
-          input, and specifying an OCI image.', Audit logs can include resource labels
-          to improve log context and filtering.]
-      breaking_changes: [External Data providers must be accessed over TLS/mTLS starting
-          in v3.11.0; plaintext providers will stop working until updated.]
-    chart_version: 3.11.1
-    images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.11.1',
-      'openpolicyagent/gatekeeper:v3.11.1']
-    eolAt: '2023-08-08'
   - version: 3.11.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -12838,18 +12756,22 @@ addons:
   helm_repository_url: https://argoproj.github.io/argo-helm
   eolApiSlug: argocd
   versions:
-  - version: 3.3.9
+  - version: 3.4.2
     kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: []
-      features: []
-      breaking_changes: []
-    chart_version: 9.5.11
+    summary: null
+    chart_version: 9.5.14
     images: ['ecr-public.aws.com/docker/library/redis:8.2.3-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
-      'quay.io/argoproj/argocd:v3.3.9']
+      'quay.io/argoproj/argocd:v3.4.2']
+  - version: 3.4.1
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 9.5.13
+    images: ['ecr-public.aws.com/docker/library/redis:8.2.3-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
+      'quay.io/argoproj/argocd:v3.4.1']
   - version: 3.3.8
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -12985,6 +12907,7 @@ addons:
     chart_version: 8.3.3
     images: ['ecr-public.aws.com/docker/library/redis:7.2.8-alpine', 'ghcr.io/dexidp/dex:v2.44.0',
       'quay.io/argoproj/argocd:v3.1.1']
+    eolAt: '2026-05-05'
   - version: 3.1.0
     kube: ['1.33', '1.32', '1.31']
     requirements: []
@@ -13016,6 +12939,7 @@ addons:
     chart_version: 8.3.0
     images: ['ecr-public.aws.com/docker/library/redis:7.2.8-alpine', 'ghcr.io/dexidp/dex:v2.43.1',
       'quay.io/argoproj/argocd:v3.1.0']
+    eolAt: '2026-05-05'
   - version: 3.0.0
     kube: ['1.33', '1.32', '1.31']
     requirements: []
@@ -13325,9 +13249,9 @@ addons:
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.0.13
+    chart_version: 1.0.14
     images: ['quay.io/argoproj/argocli:v4.0.5', 'quay.io/argoproj/workflow-controller:v4.0.5',
-      'registry.k8s.io/kubectl:v1.36.0']
+      'registry.k8s.io/kubectl:v1.36.1']
   - version: 4.0.2
     kube: ['1.33', '1.32', '1.31']
     requirements: []
@@ -13802,13 +13726,6 @@ addons:
     summary: null
     chart_version: 0.22.1
     images: ['timberio/vector:0.30.0-distroless-libc']
-  - version: 0.29.1
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary: null
-    chart_version: 0.21.1
-    images: ['timberio/vector:0.29.1-distroless-libc']
   - version: 0.29.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -15800,6 +15717,20 @@ addons:
   helm_repository_url: https://helm.elastic.co
   readme_url: https://github.com/elastic/elasticsearch/blob/main/README.asciidoc
   versions:
+  - version: 9.4.1
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 9.4.1
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.4.1', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
+  - version: 9.4.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 9.4.0
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.4.0', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
   - version: 9.3.4
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -16698,8 +16629,22 @@ addons:
   helm_repository_url: https://kubescape.github.io/helm-charts
   helm_values: clusterName=example,account=example
   versions:
+  - version: 1.40.1
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.40.1
+    images: []
+  - version: 1.40.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.40.0
+    images: []
   - version: 1.30.7
-    kube: ['1.35', '1.34', '1.33']
+    kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary:
