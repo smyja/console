@@ -147,6 +147,17 @@ addons:
   release_url: https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v{vsn}
   helm_repository_url: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
   versions:
+  - version: 1.60.1
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.60.1
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.11.0-eksbuild.6', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.16.0-eksbuild.6',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.2.0-eksbuild.5', 'public.ecr.aws/csi-components/csi-resizer:v2.1.0-eksbuild.6',
+      'public.ecr.aws/csi-components/livenessprobe:v2.18.0-eksbuild.6', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.60.1',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260512-1f34ef0df3-master']
   - version: 1.60.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
@@ -1230,12 +1241,12 @@ addons:
   release_url: https://github.com/aws/amazon-vpc-cni-k8s/releases/tag/v{vsn}
   helm_repository_url: https://aws.github.io/eks-charts
   versions:
-  - version: 1.21.1
+  - version: 1.21.2
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.21.1
+    chart_version: 1.21.2
   - version: 1.21.0
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
     requirements: []
@@ -1402,6 +1413,7 @@ addons:
     summary: null
     chart_version: 3.30.0
     images: ['quay.io/tigera/operator:v1.38.0']
+    eolAt: '2026-04-30'
   - version: 3.29.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -7117,6 +7129,7 @@ addons:
     summary: null
     chart_version: 1.30.0
     images: ['registry.istio.io/release/pilot:1.30.0']
+    eolAt: '2026-11-30'
   - version: 1.29.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31']
     requirements: []
@@ -7812,24 +7825,17 @@ addons:
   helm_repository_url: https://prometheus-community.github.io/helm-charts
   chart_changelog_url: https://raw.githubusercontent.com/prometheus-community/helm-charts/refs/heads/main/charts/kube-prometheus-stack/UPGRADE.md
   versions:
-  - version: 85.1.3
+  - version: 85.3.3
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: [Skip disabled single-rule groups when rendering Prometheus rules
-          (avoids emitting empty/disabled rule groups)., Grafana subchart/Helm release
-          updated to Grafana v12.3.3.]
-      features: ['More robust rule rendering: disabled single-rule groups are now
-          skipped, reducing noise and potential invalid/empty rule group output.']
-      breaking_changes: []
-    chart_version: 85.1.3
-    images: ['docker.io/grafana/grafana:13.0.1-security-01', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.2',
+    summary: null
+    chart_version: 85.3.3
+    images: ['docker.io/grafana/grafana:13.0.1-security-01', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.3',
       'quay.io/kiwigrid/k8s-sidecar:2.7.3', 'quay.io/prometheus-operator/prometheus-operator:v0.90.1',
       'quay.io/prometheus/alertmanager:v0.32.1', 'quay.io/prometheus/node-exporter:v1.11.1-distroless',
-      'quay.io/prometheus/prometheus:v3.11.3-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.18.0']
+      'quay.io/prometheus/prometheus:v3.11.3-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.0']
   - version: 85.1.1
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
@@ -12963,6 +12969,7 @@ addons:
     summary: null
     chart_version: 3.30.0
     images: ['quay.io/tigera/operator:v1.38.0']
+    eolAt: '2026-04-30'
   - version: 3.29.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -13052,7 +13059,7 @@ addons:
           the Helm chart, update the manifest URLs from `/v3.4.1/` to `/v3.4.2/`.']
       features: []
       breaking_changes: []
-    chart_version: 9.5.14
+    chart_version: 9.5.15
     images: ['ecr-public.aws.com/docker/library/redis:8.2.3-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
       'quay.io/argoproj/argocd:v3.4.2']
   - version: 3.4.1
@@ -16608,6 +16615,13 @@ addons:
   helm_repository_url: oci://ghcr.io/kserve/charts/kserve
   chart_name: kserve
   versions:
+  - version: 0.17.1
+    kube: ['1.35', '1.34', '1.33', '1.32']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: v0.17.1
+    images: []
   - version: 0.17.0
     kube: ['1.35', '1.34', '1.33', '1.32']
     requirements: []
@@ -16952,28 +16966,12 @@ addons:
   helm_repository_url: https://kubescape.github.io/helm-charts
   helm_values: clusterName=example,account=example
   versions:
-  - version: 1.40.1
+  - version: 1.40.2
     kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: "- **kubevuln image tag bumped** to `v0.3.137` (from `v0.3.136`).\n\
-        - **New kubevuln setting:** a `riskAcceptance` flag was added to support SecurityException\
-        \ CRD integration (configure this only if you\u2019re using/plan to use SecurityException-based\
-        \ risk acceptance).\n- **Behavior change in chart templating:** `operator.httpExporterConfig`\
-        \ is now **gated by** `synchronizer.enabled`. If you previously set `operator.httpExporterConfig`\
-        \ while `synchronizer.enabled=false`, it will no longer render/apply; enable\
-        \ the synchronizer or move to the supported configuration path.\n"
-      chart_updates: [Update kubevuln component image tag to v0.3.137 and expose configuration
-          for risk acceptance integration., Fix templating so operator `httpExporterConfig`
-          is only applied when `synchronizer.enabled` is enabled.]
-      features: [Kubevuln adds a `riskAcceptance` flag to integrate with SecurityException
-          CRDs for risk acceptance workflows., Chart now supports/threads through
-          the kubevuln risk acceptance configuration (when enabled).]
-      breaking_changes: ['If you rely on `operator.httpExporterConfig` with `synchronizer.enabled=false`,
-          that configuration will no longer be deployed because it is now gated; you
-          must enable the synchronizer or adjust your configuration approach.']
-    chart_version: 1.40.1
+    summary: null
+    chart_version: 1.40.2
     images: []
   - version: 1.40.0
     kube: ['1.36', '1.35', '1.34']
@@ -17567,12 +17565,12 @@ addons:
   helm_values: wizApiToken.secret.create=false,imagePullSecret.username=dummy,imagePullSecret.password=dummy
   chart_name: wiz-sensor
   versions:
-  - version: 1.0.10715
+  - version: 1.0.10850
     kube: ['1.36', '1.35', '1.34', '1.33']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.0.10715
+    chart_version: 1.0.11007
     images: ['wizio.azurecr.io/sensor:v1']
   - version: 1.0.3999
     kube: ['1.36', '1.35', '1.34', '1.33']
