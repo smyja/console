@@ -147,6 +147,61 @@ addons:
   release_url: https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/tag/v{vsn}
   helm_repository_url: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
   versions:
+  - version: 1.65.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.65.0
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.12.0-eksbuild.6', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.6',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.5', 'public.ecr.aws/csi-components/csi-resizer:v2.2.1-eksbuild.4',
+      'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.6', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.65.0',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260817-81577dc432-master']
+  - version: 1.64.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.64.0
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.12.0-eksbuild.5', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.5',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.4', 'public.ecr.aws/csi-components/csi-resizer:v2.2.1-eksbuild.3',
+      'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.5', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.64.0',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260817-81577dc432-master']
+  - version: 1.63.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.63.0
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.12.0-eksbuild.3', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.3',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.2', 'public.ecr.aws/csi-components/csi-resizer:v2.2.1-eksbuild.1',
+      'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.3', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.63.0',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260720-39d457d26c-master']
+  - version: 1.62.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.62.0
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.12.0-eksbuild.2', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.2',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.1', 'public.ecr.aws/csi-components/csi-resizer:v2.2.0-eksbuild.2',
+      'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.2', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.62.0',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260615-b4199512ce-master']
+  - version: 1.61.1
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.61.1
+    images: ['public.ecr.aws/csi-components/csi-attacher:v4.12.0-eksbuild.2', 'public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.2',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.2.0-eksbuild.7', 'public.ecr.aws/csi-components/csi-resizer:v2.2.0-eksbuild.2',
+      'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.2', 'public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver:v1.61.1',
+      'us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20260601-2cbf4bdb47-master']
   - version: 1.60.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20']
@@ -612,9 +667,35 @@ addons:
   release_url: https://github.com/kubernetes-sigs/aws-efs-csi-driver/releases/tag/v{vsn}
   helm_repository_url: https://kubernetes-sigs.github.io/aws-efs-csi-driver
   versions:
+  - version: 3.4.2
+    kube: []
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 4.4.2
+    images: ['public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.5',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.4', 'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.5',
+      'public.ecr.aws/efs-csi-driver/amazon/aws-efs-csi-driver:v3.4.2']
+  - version: 3.4.0
+    kube: []
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 4.4.0
+    images: ['public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.2',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.3.0-eksbuild.1', 'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.2',
+      'public.ecr.aws/efs-csi-driver/amazon/aws-efs-csi-driver:v3.4.0']
+  - version: 3.3.0
+    kube: []
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 4.3.0
+    images: ['public.ecr.aws/csi-components/csi-node-driver-registrar:v2.17.0-eksbuild.2',
+      'public.ecr.aws/csi-components/csi-provisioner:v6.2.0-eksbuild.7', 'public.ecr.aws/csi-components/livenessprobe:v2.19.0-eksbuild.2',
+      'public.ecr.aws/efs-csi-driver/amazon/aws-efs-csi-driver:v3.3.0']
   - version: 3.2.0
-    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
-      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19', '1.18', '1.17']
+    kube: []
     requirements: []
     incompatibilities: []
     summary: null
@@ -717,6 +798,22 @@ addons:
   helm_values: clusterName=example
   chart_name: aws-load-balancer-controller
   versions:
+  - version: 3.5.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.5.0
+    images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.5.0']
+  - version: 3.4.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.4.0
+    images: ['public.ecr.aws/eks/aws-load-balancer-controller:v3.4.0']
   - version: 3.3.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
@@ -1230,12 +1327,16 @@ addons:
   release_url: https://github.com/aws/amazon-vpc-cni-k8s/releases/tag/v{vsn}
   helm_repository_url: https://aws.github.io/eks-charts
   versions:
-  - version: 1.21.1
+  - version: 1.23.0
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.21.1
+  - version: 1.22.1
+    kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
+    requirements: []
+    incompatibilities: []
+    summary: null
   - version: 1.21.0
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
     requirements: []
@@ -1272,12 +1373,14 @@ addons:
     incompatibilities: []
     summary: null
     chart_version: 1.16.2
+    images: []
   - version: 1.16.0
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary: null
     chart_version: 1.16.0
+    images: []
   - version: 1.15.0
     kube: ['1.30', '1.29', '1.28', '1.27', '1.26', '1.25', '1.24', '1.23']
     requirements: []
@@ -1381,6 +1484,13 @@ addons:
   chart_name: tigera-operator
   eolApiSlug: calico
   versions:
+  - version: 3.32.2
+    kube: ['1.30', '1.29', '1.28', '1.27']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.32.2
+    images: ['quay.io/tigera/operator:v1.42.6']
   - version: 3.32.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -1402,6 +1512,7 @@ addons:
     summary: null
     chart_version: 3.30.0
     images: ['quay.io/tigera/operator:v1.38.0']
+    eolAt: '2026-04-30'
   - version: 3.29.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -1477,6 +1588,14 @@ addons:
   helm_repository_url: https://charts.jetstack.io
   eolApiSlug: cert-manager
   versions:
+  - version: 1.21.0
+    kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.21.0
+    images: ['quay.io/jetstack/cert-manager-cainjector:v1.21.0', 'quay.io/jetstack/cert-manager-controller:v1.21.0',
+      'quay.io/jetstack/cert-manager-startupapicheck:v1.21.0', 'quay.io/jetstack/cert-manager-webhook:v1.21.0']
   - version: 1.20.0
     kube: ['1.35', '1.34', '1.33', '1.32']
     requirements: []
@@ -1591,6 +1710,7 @@ addons:
     chart_version: 1.19.0
     images: ['quay.io/jetstack/cert-manager-cainjector:v1.19.0', 'quay.io/jetstack/cert-manager-controller:v1.19.0',
       'quay.io/jetstack/cert-manager-startupapicheck:v1.19.0', 'quay.io/jetstack/cert-manager-webhook:v1.19.0']
+    eolAt: '2026-07-08'
   - version: 1.18.0
     kube: ['1.33', '1.32', '1.31', '1.30', '1.29']
     requirements: []
@@ -2708,6 +2828,20 @@ addons:
   helm_values: debug.verbose=flow
   eolApiSlug: cilium
   versions:
+  - version: 1.20.1
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.20.1
+    images: []
+  - version: 1.20.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.20.0
+    images: []
   - version: 1.19.4
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -2972,6 +3106,7 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.36.6-1778235340-b87d1e32f522b33bd51701c6476d199326f01496@sha256:71d4fa0ec45e8d546dbd5604e169dc77fe92be63b799313bff031d00d89762e3',
       'quay.io/cilium/cilium:v1.17.16@sha256:4efb37b791561bc5a2c6d746bdd6f52a9c393623d2426e8c0877cc389610477c',
       'quay.io/cilium/operator-generic:v1.17.16@sha256:42955931dd62c9c2ea906d78eed0b651b22e70d59cd4877381f57bb98e4a09ae']
+    eolAt: '2026-07-29'
   - version: 1.17.12
     kube: ['1.35', '1.34', '1.33']
     requirements: []
@@ -2994,6 +3129,7 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.34.12-1767177245-7935d4d711cb6f8020385a50c996b90896e16a71@sha256:377175048c79d12c129d29e7a56268e1edaad37c96e649e892465c01bf2b4f8f',
       'quay.io/cilium/cilium:v1.17.12@sha256:f525e12698149b3958024599493d9cc56fadbc46c9250cbced8016e9b9b679e5',
       'quay.io/cilium/operator-generic:v1.17.12@sha256:0b675406b1e43b198962d4f9c3a5ba6bb68fc98836cba05b224860109112f6d9']
+    eolAt: '2026-07-29'
   - version: 1.17.8
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -3035,6 +3171,7 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.33.9-1757932127-3c04e8f2f1027d106b96f8ef4a0215e81dbaaece@sha256:06fbc4e55d926dd82ff2a0049919248dcc6be5354609b09012b01bc9c5b0ee28',
       'quay.io/cilium/cilium:v1.17.8@sha256:6d7ea72ed311eeca4c75a1f17617a3d596fb6038d30d00799090679f82a01636',
       'quay.io/cilium/operator-generic:v1.17.8@sha256:5468807b9c31997f3a1a14558ec7c20c5b962a2df6db633b7afbe2f45a15da1c']
+    eolAt: '2026-07-29'
   - version: 1.17.4
     kube: ['1.33', '1.32', '1.31']
     requirements: []
@@ -3066,6 +3203,7 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.32.6-1746661844-0f602c28cb2aa57b29078195049fb257d5b5246c@sha256:a04218c6879007d60d96339a441c448565b6f86650358652da27582e0efbf182',
       'quay.io/cilium/cilium:v1.17.4@sha256:24a73fe795351cf3279ac8e84918633000b52a9654ff73a6b0d7223bcff4a67a',
       'quay.io/cilium/operator-generic:v1.17.4@sha256:a3906412f477b09904f46aac1bed28eb522bef7899ed7dd81c15f78b7aa1b9b5']
+    eolAt: '2026-07-29'
   - version: 1.17.0
     kube: ['1.32', '1.31', '1.30']
     requirements: []
@@ -3109,6 +3247,7 @@ addons:
     images: ['quay.io/cilium/cilium-envoy:v1.31.5-1737535524-fe8efeb16a7d233bffd05af9ea53599340d3f18e@sha256:57a3aa6355a3223da360395e3a109802867ff635cb852aa0afe03ec7bf04e545',
       'quay.io/cilium/cilium:v1.17.0@sha256:51f21bdd003c3975b5aaaf41bd21aee23cc08f44efaa27effc91c621bc9d8b1d',
       'quay.io/cilium/operator-generic:v1.17.0@sha256:1ce5a5a287166fc70b6a5ced3990aaa442496242d1d4930b5a3125e44cccdca8']
+    eolAt: '2026-07-29'
   - version: 1.16.19
     kube: ['1.35', '1.34', '1.33']
     requirements: []
@@ -3724,7 +3863,7 @@ addons:
       'quay.io/cilium/operator-generic:v1.14.2@sha256:52f70250dea22e506959439a7c4ea31b10fe8375db62f5c27ab746e3a2af866d']
     eolAt: '2025-02-04'
   - version: 1.14.0
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary:
@@ -3875,23 +4014,6 @@ addons:
     images: ['quay.io/cilium/cilium:v1.13.7@sha256:3b084617febd708aa9d88de2472c6faf9aee71884112725e8511bca628ce5cf1',
       'quay.io/cilium/operator-generic:v1.13.7@sha256:0ec1bc5d9ecc444a890aaa2e0f397e77d15f1832910f1c20be3adc535688baba']
     eolAt: '2024-07-24'
-  - version: 1.13.3
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: []
-      features: ['Cilium Ingress now assumes the Ingress security identity for cluster-internal
-          traffic when enforcing policy, which can change how L7/L4 policies match
-          traffic going through the Cilium Ingress path.', 'Deny Policies are promoted
-          from Beta to Stable in 1.13.3, making deny rules a first-class, supported
-          policy mechanism for enforcement scenarios.']
-      breaking_changes: []
-    chart_version: 1.13.3
-    images: ['quay.io/cilium/cilium:v1.13.3@sha256:77176464a1e11ea7e89e984ac7db365e7af39851507e94f137dcf56c87746314',
-      'quay.io/cilium/operator-generic:v1.13.3@sha256:fa7003cbfdf8358cb71786afebc711b26e5e44a2ed99bd4944930bba915b8910']
-    eolAt: '2024-07-24'
   - version: 1.13.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -3987,66 +4109,6 @@ addons:
     chart_version: 1.12.14
     images: ['quay.io/cilium/cilium:v1.12.14@sha256:a54b28a5c15e14f3491c772ca7cfa86266a2b1efb85326bc1ab6c95b91aeaa77',
       'quay.io/cilium/operator-generic:v1.12.14@sha256:b9ce66384c74f79a2982ef3a4602f649d49e9b8b79b58db5faa344c7451cb7c9']
-  - version: 1.12.10
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary:
-      helm_changes: "## Helm chart / values to review for this upgrade (1.12.0 \u2192\
-        \ 1.12.10)\n\n> You\u2019re staying within the **1.12 minor** line, so you\
-        \ generally shouldn\u2019t need major reconfiguration. Still, review these\
-        \ value areas because they were introduced/changed during 1.12 and may affect\
-        \ your cluster.\n\n### New / adjusted Helm values introduced around 1.12\n\
-        - **Ingress controller / IngressClass**\n  - Chart can **create a `Cilium`\
-        \ IngressClass**.\n  - If you plan to use the integrated ingress controller,\
-        \ confirm related values (e.g., enabling ingress, class creation/name) align\
-        \ with your cluster\u2019s existing ingress setup.\n\n- **Hubble service exposure\
-        \ knobs**\n  - You can set **Hubble Relay and UI service type and nodePort**\
-        \ via Helm values.\n\n- **Hubble security contexts**\n  - New value: `hubble.relay.securityContext`.\n\
-        \  - Exposed: `hubble.ui.securityContext`.\n\n- **Agent DNS proxy configuration\
-        \ exposed via chart values**\n  - DNS proxy parameters are configurable via\
-        \ Helm values; also there is a chart option to make DNS policy for cilium-agent/operator\
-        \ pods configurable.\n\n- **bpf root setting**\n  - Chart gained a `bpf-root`\
-        \ configuration value.\n\n### Items to watch during upgrade\n- **Prometheus\
-        \ ports default change**\n  - Default Prometheus ports were changed to the\
-        \ reserved Cilium ports. If you have NetworkPolicies/ServiceMonitors/firewall\
-        \ rules pinned to old ports, update them.\n\n- **Egress Gateway CRD migration**\n\
-        \  - In 1.12, a new CRD `CiliumEgressGatewayPolicy` was introduced and `CiliumEgressNATPolicy`\
-        \ was deprecated. If you use egress gateway, plan the CRD/manifest migration\
-        \ as part of (or prior to) the upgrade.\n\n- **Host routing config rename**\n\
-        \  - `bpf.hostRouting` was renamed to `bpf.hostLegacyRouting` in ciliumconfig.\
-        \ If you set this explicitly, update your values/config accordingly.\n\n-\
-        \ **DaemonSet privileged mode removed**\n  - Cilium removed privileged mode\
-        \ in the DaemonSet. If your cluster relied on privileged constraints/PSP exemptions,\
-        \ confirm the new securityContext/capabilities still comply with your policies.\n\
-        \n### Release 1.12.10 note\n- `helm: add clustermesh nodeport config warning\
-        \ about known bug #24692` \u2014 if you use clustermesh with NodePort, read\
-        \ the warning in the chart notes and validate your configuration/path.\n"
-      chart_updates: ['Introduced integrated Ingress Controller support in the chart,
-          including creating a Cilium `IngressClass`.', Added knobs to expose Hubble
-          Relay/UI services (service type and nodePort) and expanded securityContext
-          configuration for Hubble components., Exposed additional agent DNS proxy
-          and DNS policy related settings as Helm values., Added `bpf-root` chart
-          value; aligned `values.yaml` with templates; fixed missing PDB creation;
-          fixed ServiceMonitor/Hubble service and certificate spec issues., Changed
-          default Prometheus ports to reserved Cilium ports (may impact monitoring
-          plumbing)., Added chart warning related to clustermesh NodePort known issue
-          (#24692).]
-      features: [Integrated Cilium Ingress Controller support (IngressClass + configuration
-          via Helm)., Service Mesh capabilities with Envoy CRDs (CiliumEnvoyConfig)
-          and related improvements., Stable Egress Gateway with new CRD `CiliumEgressGatewayPolicy`
-          (old NAT policy CRD deprecated)., 'Operational/observability improvements:
-          expanded Hubble metrics and improved sysdump (by 1.12.10 includes Kubernetes
-          CNI logs).']
-      breaking_changes: ['Egress Gateway configuration CRD change: `CiliumEgressGatewayPolicy`
-          introduced and `CiliumEgressNATPolicy` deprecated; existing manifests may
-          need migration.', 'Config rename: `bpf.hostRouting` renamed to `bpf.hostLegacyRouting`
-          (clusters explicitly setting the old key must update).', 'Default Prometheus
-          ports changed to reserved Cilium ports, which can break existing ServiceMonitor
-          scrape configs, firewall rules, or NetworkPolicies if they assume old ports.']
-    chart_version: 1.12.10
-    images: ['quay.io/cilium/cilium:v1.12.10@sha256:2cbfdf737b349c2733643f1943c7a263df63fbb86852f267f64c49cb5dfbb230',
-      'quay.io/cilium/operator-generic:v1.12.10@sha256:1d78da0fcbf7ccfb32eb31f8b3b361628e91ab5f42d17ff437a82969c773fa1e']
   - version: 1.12.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -4109,42 +4171,6 @@ addons:
     chart_version: 1.12.0
     images: ['quay.io/cilium/cilium:v1.12.0@sha256:079baa4fa1b9fe638f96084f4e0297c84dd4fb215d29d2321dcbe54273f63ade',
       'quay.io/cilium/operator-generic:v1.12.0@sha256:bb2a42eda766e5d4a87ee8a5433f089db81b72dd04acf6b59fcbb445a95f9410']
-  - version: 1.11.17
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary:
-      helm_changes: "- **Hubble UI scheduling values restored (v1.11.17):** If you\
-        \ set scheduling constraints for Hubble UI, verify/adjust values as this release\
-        \ explicitly restores support for setting `nodeSelector` and `tolerations`\
-        \ on the `hubble-ui` Deployment via `values.yaml`.\n  - Action: re-check your\
-        \ `values.yaml` for `hubble-ui` (or equivalent chart values) and confirm the\
-        \ rendered manifest includes your desired `nodeSelector`/`tolerations`.\n\n\
-        - **Clustermesh NodePort known-bug warning (v1.11.17):** Helm chart adds a\
-        \ warning about a known bug when using clustermesh NodePort (ref #24692).\n\
-        \  - Action: if you use clustermesh with NodePort, review the warning and\
-        \ validate your setup/tests after upgrade.\n\n- **Peer service behavior already\
-        \ in 1.11.6:** Earlier in the series, Helm changes include not generating\
-        \ the hubble-peer service during preflight and defaulting peer service ports\
-        \ to 80/443. Ensure your existing configuration still matches your intent\
-        \ after upgrading (especially if you rely on custom peer service ports or\
-        \ preflight behavior)."
-      chart_updates: ['Helm chart fixes/behavior: restore `nodeSelector` and `tolerations`
-          on `hubble-ui` Deployment via `values.yaml` (v1.11.17).', 'Helm chart documentation/guardrail:
-          add clustermesh NodePort config warning regarding known issue #24692 (v1.11.17).',
-        'Packaging/tooling: add `helm-toolbox` image used for Helm docs/lint workflows
-          (v1.11.17).']
-      features: ['Operational improvement for clusters using MetalLB as a BGP speaker:
-          IPv6 advertisements are filtered to avoid unwanted routing announcements
-          (v1.11.17).', 'WireGuard + clustermesh reliability: fixes connectivity when
-          different clusters have nodes with the same node name (v1.11.17).', 'FQDN/DNS
-          scalability work already present in 1.11.6: concurrency limiting and reduced
-          resource usage under high DNS load improve stability for FQDN policies (baseline
-          context for your starting version).']
-      breaking_changes: []
-    chart_version: 1.11.17
-    images: ['quay.io/cilium/cilium:v1.11.17@sha256:6c3132e34e66734752de798eb8519dafa77b9f0da1033e9bed7f7be30ce10358',
-      'quay.io/cilium/operator-generic:v1.11.17@sha256:f77cf55ebc47174fb64fd8ffd030015e55817ed9a6bfab46d0ee917a7ed198e5']
   - version: 1.11.6
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -5756,6 +5782,41 @@ addons:
   release_url: https://github.com/external-secrets/external-secrets/releases/tag/v{vsn}
   helm_repository_url: https://charts.external-secrets.io
   versions:
+  - version: 2.10.0
+    kube: ['1.36']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.10.0
+    images: ['ghcr.io/external-secrets/external-secrets:v2.10.0']
+  - version: 2.9.0
+    kube: ['1.36']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.9.0
+    images: ['ghcr.io/external-secrets/external-secrets:v2.9.0']
+  - version: 2.8.0
+    kube: ['1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.8.0
+    images: ['ghcr.io/external-secrets/external-secrets:v2.8.0']
+  - version: 2.7.0
+    kube: ['1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.7.0
+    images: ['ghcr.io/external-secrets/external-secrets:v2.7.0']
+  - version: 2.6.0
+    kube: ['1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.6.0
+    images: ['ghcr.io/external-secrets/external-secrets:v2.6.0']
   - version: 2.5.0
     kube: ['1.35', '1.34']
     requirements: []
@@ -6432,6 +6493,11 @@ addons:
   chart_name: flux2
   eolApiSlug: flux
   versions:
+  - version: 2.9.0
+    kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
   - version: 2.8.0
     kube: ['1.36', '1.35', '1.34', '1.33']
     requirements: []
@@ -6447,6 +6513,7 @@ addons:
     requirements: []
     incompatibilities: []
     summary: null
+    eolAt: '2026-06-30'
   - version: 2.5.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29']
     requirements: []
@@ -7117,6 +7184,7 @@ addons:
     summary: null
     chart_version: 1.30.0
     images: ['registry.istio.io/release/pilot:1.30.0']
+    eolAt: '2026-12-31'
   - version: 1.29.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31']
     requirements: []
@@ -7124,7 +7192,7 @@ addons:
     summary: null
     chart_version: 1.29.0
     images: ['docker.io/istio/pilot:1.29.0']
-    eolAt: '2026-08-31'
+    eolAt: '2026-10-31'
   - version: 1.28.0
     kube: ['1.34', '1.33', '1.32', '1.31', '1.30']
     requirements: []
@@ -7132,7 +7200,7 @@ addons:
     summary: null
     chart_version: 1.28.0
     images: ['docker.io/istio/pilot:1.28.0']
-    eolAt: '2026-05-31'
+    eolAt: '2026-07-01'
   - version: 1.27.0
     kube: ['1.33', '1.32', '1.31', '1.30', '1.29']
     requirements: []
@@ -7473,8 +7541,15 @@ addons:
   helm_repository_url: oci://public.ecr.aws/karpenter/karpenter
   helm_values: settings.clusterName=example
   versions:
+  - version: 1.13.0
+    kube: ['1.36', '1.35', '1.34', '1.33', '1.32', '1.31', '1.30']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.13.0
+    images: ['public.ecr.aws/karpenter/controller:1.13.0@sha256:ea731b0cd813add8b2947a76bfe861c38069d85922b01d0c1647d1466279b7fe']
   - version: 1.9.0
-    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29']
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7520,7 +7595,7 @@ addons:
     chart_version: 1.8.0
     images: ['public.ecr.aws/karpenter/controller:1.8.0@sha256:f913075cdd31cfcdfaa9726ca7a0b264832fc42e8a48eb573a2a0f454b38b112']
   - version: 1.6.0
-    kube: ['1.34', '1.33', '1.32', '1.31', '1.30', '1.29']
+    kube: ['1.34', '1.33', '1.32', '1.31', '1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7558,7 +7633,7 @@ addons:
     chart_version: 1.6.0
     images: ['public.ecr.aws/karpenter/controller:1.6.0@sha256:37c761a3a0b485fd34db1390317ef6149141f532c5a699c528b98fb8f9cc722a']
   - version: 1.5.0
-    kube: ['1.33', '1.32', '1.31', '1.30', '1.29']
+    kube: ['1.33', '1.32', '1.31', '1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7591,7 +7666,7 @@ addons:
     chart_version: 1.5.0
     images: ['public.ecr.aws/karpenter/controller:1.5.0@sha256:339aef3f5ecdf6f94d1c7cc9d0e1d359c281b4f9b842877bdbf2acd3fa360521']
   - version: 1.2.0
-    kube: ['1.32', '1.31', '1.30', '1.29']
+    kube: ['1.32', '1.31', '1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7605,7 +7680,7 @@ addons:
     chart_version: 1.2.0
     images: ['public.ecr.aws/karpenter/controller:1.2.0@sha256:24b8fe57f02b70fc4ab3cd6d5aa0d73a6f3d0c62ca5d23d7ffc8853eac01e324']
   - version: 1.0.5
-    kube: ['1.31', '1.30', '1.29']
+    kube: ['1.31', '1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7622,7 +7697,7 @@ addons:
     chart_version: 1.0.5
     images: ['public.ecr.aws/karpenter/controller:1.0.5@sha256:f2df98735b232b143d37f0c6819a6cae2be4740e3c8b38297bceb365cf3f668b']
   - version: 0.37.0
-    kube: ['1.30', '1.29']
+    kube: ['1.30']
     requirements: []
     incompatibilities: []
     summary:
@@ -7715,6 +7790,12 @@ addons:
   helm_repository_url: https://kedacore.github.io/charts
   eolApiSlug: keda
   versions:
+  - version: 2.20.0
+    kube: ['1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.20.0
   - version: 2.19.0
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -7727,6 +7808,7 @@ addons:
     incompatibilities: []
     summary: null
     chart_version: 2.18.0
+    eolAt: '2026-06-01'
   - version: 2.17.0
     kube: ['1.32', '1.31', '1.30']
     requirements: []
@@ -7812,24 +7894,50 @@ addons:
   helm_repository_url: https://prometheus-community.github.io/helm-charts
   chart_changelog_url: https://raw.githubusercontent.com/prometheus-community/helm-charts/refs/heads/main/charts/kube-prometheus-stack/UPGRADE.md
   versions:
-  - version: 85.1.3
+  - version: 88.6.2
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: [Skip disabled single-rule groups when rendering Prometheus rules
-          (avoids emitting empty/disabled rule groups)., Grafana subchart/Helm release
-          updated to Grafana v12.3.3.]
-      features: ['More robust rule rendering: disabled single-rule groups are now
-          skipped, reducing noise and potential invalid/empty rule group output.']
-      breaking_changes: []
-    chart_version: 85.1.3
-    images: ['docker.io/grafana/grafana:13.0.1-security-01', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.2',
+    summary: null
+    chart_version: 88.6.2
+    images: ['docker.io/grafana/grafana:13.2.0', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.8',
+      'quay.io/kiwigrid/k8s-sidecar:2.10.1', 'quay.io/prometheus-operator/prometheus-operator:v0.93.1',
+      'quay.io/prometheus/alertmanager:v0.34.0', 'quay.io/prometheus/node-exporter:v1.12.1-distroless',
+      'quay.io/prometheus/prometheus:v3.14.0-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0']
+  - version: 87.21.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 87.21.0
+    images: ['docker.io/grafana/grafana:13.1.1', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.5',
+      'quay.io/kiwigrid/k8s-sidecar:2.10.0', 'quay.io/prometheus-operator/prometheus-operator:v0.92.1',
+      'quay.io/prometheus/alertmanager:v0.33.1', 'quay.io/prometheus/node-exporter:v1.12.1-distroless',
+      'quay.io/prometheus/prometheus:v3.13.1-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.1']
+  - version: 86.3.2
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 86.3.2
+    images: ['docker.io/grafana/grafana:13.0.2', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.4',
+      'quay.io/kiwigrid/k8s-sidecar:2.7.3', 'quay.io/prometheus-operator/prometheus-operator:v0.91.0',
+      'quay.io/prometheus/alertmanager:v0.33.0', 'quay.io/prometheus/node-exporter:v1.11.1-distroless',
+      'quay.io/prometheus/prometheus:v3.12.0-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.1']
+  - version: 85.4.0
+    kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
+      '1.26', '1.25']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 85.4.0
+    images: ['docker.io/grafana/grafana:13.0.1-security-01', 'ghcr.io/jkroepke/kube-webhook-certgen:1.8.3',
       'quay.io/kiwigrid/k8s-sidecar:2.7.3', 'quay.io/prometheus-operator/prometheus-operator:v0.90.1',
       'quay.io/prometheus/alertmanager:v0.32.1', 'quay.io/prometheus/node-exporter:v1.11.1-distroless',
-      'quay.io/prometheus/prometheus:v3.11.3-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.18.0']
+      'quay.io/prometheus/prometheus:v3.11.3-distroless', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.0']
   - version: 85.1.1
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30', '1.29', '1.28', '1.27',
       '1.26', '1.25']
@@ -9052,6 +9160,7 @@ addons:
       'reg.kyverno.io/kyverno/cleanup-controller:v1.16.0', 'reg.kyverno.io/kyverno/kyverno-cli:v1.16.0',
       'reg.kyverno.io/kyverno/kyverno:v1.16.0', 'reg.kyverno.io/kyverno/kyvernopre:v1.16.0',
       'reg.kyverno.io/kyverno/reports-controller:v1.16.0', 'registry.k8s.io/kubectl:v1.32.7']
+    eolAt: '2026-08-20'
   - version: 1.15.0
     kube: ['1.33', '1.32', '1.31', '1.30']
     requirements: []
@@ -9111,6 +9220,7 @@ addons:
           together may behave differently.]
     chart_version: 3.5.0
     images: []
+    eolAt: '2026-04-29'
   - version: 1.14.0
     kube: ['1.32', '1.31', '1.30', '1.29']
     requirements: []
@@ -10511,6 +10621,13 @@ addons:
   release_url: https://github.com/rook/rook/releases/tag/v{vsn}
   helm_repository_url: https://charts.rook.io/release
   versions:
+  - version: 1.20.0
+    kube: ['1.36', '1.35', '1.34', '1.33', '1.32', '1.31']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 1.20.0
+    images: []
   - version: 1.19.0
     kube: ['1.35', '1.34', '1.33', '1.32', '1.31', '1.30']
     requirements: []
@@ -11187,27 +11304,19 @@ addons:
   helm_repository_url: https://traefik.github.io/charts
   eolApiSlug: traefik
   versions:
-  - version: 3.6.7
+  - version: 3.7.12
     kube: ['1.35', '1.34', '1.33', '1.32']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: []
-      features: ['v3.6.0 adds multiple new capabilities: TCP health checks plus passive
-          health checks, a new least-time load-balancing strategy, a new HighestRandomWeight
-          algorithm (including CRD support), and multi-layer routing improvements.',
-        'Kubernetes-related enhancements in v3.6.0 include a new Knative provider,
-          allowing Ingress to publish ExternalName services, and a Gateway API bump
-          to v1.4.0.', 'v3.6.7 includes ACME improvements (renew options, handshake
-          timeout, updated lego library) and several Kubernetes provider fixes, plus
-          dashboard hardening around X-Forwarded-Prefix.', 'v3.6.7 fixes a security
-          issue (CVE-2026-22045) and includes multiple bug fixes across ACME, k8s
-          ingress/ingress-nginx, and server behavior. ']
-      breaking_changes: ['v3.6.7 is a breaking change relative to v3.6.4+ hotfix behavior:
-          the encoded character handling change is now opt-in, restoring the pre-hotfix
-          default behavior unless you enable the feature per the migration guide.']
-    chart_version: 39.0.0
+    summary: null
+    chart_version: 41.4.0
+    images: []
+  - version: 3.7.0
+    kube: ['1.35', '1.34', '1.33', '1.32']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 40.0.1
     images: []
   - version: 3.6.0
     kube: ['1.35', '1.34', '1.33', '1.32']
@@ -11237,6 +11346,7 @@ addons:
           to >=3.5 (including 3.6).']
     chart_version: 37.3.0
     images: ['docker.io/traefik:v3.6.0']
+    eolAt: '2026-08-16'
   - version: 3.5.0
     kube: ['1.35', '1.34', '1.33', '1.32']
     requirements: []
@@ -11375,19 +11485,19 @@ addons:
     requirements: []
     incompatibilities: []
     summary: null
-    eolAt: '2026-02-01'
+    eolAt: '2026-09-07'
   - version: 2.11.10
     kube: ['1.32', '1.31', '1.30', '1.29']
     requirements: []
     incompatibilities: []
     summary: null
-    eolAt: '2026-02-01'
+    eolAt: '2026-09-07'
   - version: 2.11.4
     kube: ['1.31', '1.30', '1.29', '1.28']
     requirements: []
     incompatibilities: []
     summary: null
-    eolAt: '2026-02-01'
+    eolAt: '2026-09-07'
   - version: 2.10.3
     kube: ['1.30', '1.29', '1.28']
     requirements: []
@@ -11759,6 +11869,22 @@ addons:
   chart_name: gatekeeper
   eolApiSlug: gatekeeper
   versions:
+  - version: 3.23.1
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.23.1
+    images: ['curlimages/curl:8.20.0', 'openpolicyagent/gatekeeper-crds:v3.23.1',
+      'openpolicyagent/gatekeeper:v3.23.1']
+  - version: 3.23.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.23.0
+    images: ['curlimages/curl:8.20.0', 'openpolicyagent/gatekeeper-crds:v3.23.0',
+      'openpolicyagent/gatekeeper:v3.23.0']
   - version: 3.22.2
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -11856,6 +11982,7 @@ addons:
     chart_version: 3.21.1
     images: ['curlimages/curl:8.12.0', 'openpolicyagent/gatekeeper-crds:v3.21.1',
       'openpolicyagent/gatekeeper:v3.21.1']
+    eolAt: '2026-07-09'
   - version: 3.21.0
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -11901,6 +12028,7 @@ addons:
     chart_version: 3.21.0
     images: ['curlimages/curl:8.12.0', 'openpolicyagent/gatekeeper-crds:v3.21.0',
       'openpolicyagent/gatekeeper:v3.21.0']
+    eolAt: '2026-07-09'
   - version: 3.20.1
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -12414,7 +12542,7 @@ addons:
       'openpolicyagent/gatekeeper:v3.13.2']
     eolAt: '2024-02-05'
   - version: 3.13.0
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary:
@@ -12942,6 +13070,13 @@ addons:
   chart_name: tigera-operator
   eolApiSlug: calico
   versions:
+  - version: 3.32.2
+    kube: ['1.30', '1.29', '1.28', '1.27']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.32.2
+    images: ['quay.io/tigera/operator:v1.42.6']
   - version: 3.32.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -12963,6 +13098,7 @@ addons:
     summary: null
     chart_version: 3.30.0
     images: ['quay.io/tigera/operator:v1.38.0']
+    eolAt: '2026-04-30'
   - version: 3.29.0
     kube: ['1.30', '1.29', '1.28', '1.27']
     requirements: []
@@ -13038,23 +13174,30 @@ addons:
   helm_repository_url: https://argoproj.github.io/argo-helm
   eolApiSlug: argocd
   versions:
-  - version: 3.4.2
+  - version: 3.5.2
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 10.6.0
+    images: ['ecr-public.aws.com/docker/library/redis:8.6.4-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
+      'quay.io/argoproj/argocd:v3.5.2']
+  - version: 3.5.1
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 10.4.0
+    images: ['ecr-public.aws.com/docker/library/redis:8.6.4-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
+      'quay.io/argoproj/argocd:v3.5.1']
+  - version: 3.5.0
     kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: ''
-      chart_updates: ["No Helm chart notes were provided in the supplied release notes;\
-          \ treat this as an Argo CD application version bump only (3.4.1 \u2192 3.4.2).",
-        'Because this is a patch release, expect no CRD/schema changes, but still
-          run a diff (`helm template`/`helm diff`) and verify image tags get updated
-          as expected.', 'If you vendor Argo CD install manifests instead of using
-          the Helm chart, update the manifest URLs from `/v3.4.1/` to `/v3.4.2/`.']
-      features: []
-      breaking_changes: []
-    chart_version: 9.5.14
-    images: ['ecr-public.aws.com/docker/library/redis:8.2.3-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
-      'quay.io/argoproj/argocd:v3.4.2']
+    summary: null
+    chart_version: 10.3.2
+    images: ['ecr-public.aws.com/docker/library/redis:8.6.4-alpine', 'ghcr.io/dexidp/dex:v2.45.1',
+      'quay.io/argoproj/argocd:v3.5.0']
   - version: 3.4.1
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -13168,6 +13311,7 @@ addons:
     chart_version: 9.1.8
     images: ['ecr-public.aws.com/docker/library/redis:8.2.2-alpine', 'ghcr.io/dexidp/dex:v2.44.0',
       'quay.io/argoproj/argocd:v3.2.1']
+    eolAt: '2026-08-04'
   - version: 3.2.0
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -13199,6 +13343,7 @@ addons:
     chart_version: 9.1.4
     images: ['ecr-public.aws.com/docker/library/redis:8.2.2-alpine', 'ghcr.io/dexidp/dex:v2.44.0',
       'quay.io/argoproj/argocd:v3.2.0']
+    eolAt: '2026-08-04'
   - version: 3.1.1
     kube: ['1.34', '1.33', '1.32']
     requirements: []
@@ -13555,14 +13700,22 @@ addons:
   helm_repository_url: https://argoproj.github.io/argo-helm
   chart_name: argo-workflows
   versions:
-  - version: 4.0.5
-    kube: ['1.33', '1.32', '1.31']
+  - version: 4.1.2
+    kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.0.14
-    images: ['quay.io/argoproj/argocli:v4.0.5', 'quay.io/argoproj/workflow-controller:v4.0.5',
-      'registry.k8s.io/kubectl:v1.36.1']
+    chart_version: 2.0.3
+    images: ['quay.io/argoproj/argo-workflows-crdinstaller:v4.1.2', 'quay.io/argoproj/argocli:v4.1.2',
+      'quay.io/argoproj/workflow-controller:v4.1.2']
+  - version: 4.1.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.0.0
+    images: ['quay.io/argoproj/argo-workflows-crdinstaller:v4.1.0', 'quay.io/argoproj/argocli:v4.1.0',
+      'quay.io/argoproj/workflow-controller:v4.1.0']
   - version: 4.0.2
     kube: ['1.33', '1.32', '1.31']
     requirements: []
@@ -13662,20 +13815,13 @@ addons:
     summary: null
     chart_version: 0.37.1
     images: ['quay.io/argoproj/argocli:v3.5.0', 'quay.io/argoproj/workflow-controller:v3.5.0']
-  - version: 3.4.10
+  - version: 3.4.11
     kube: ['1.28', '1.27', '1.26']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 0.33.1
-    images: ['quay.io/argoproj/argocli:v3.4.10', 'quay.io/argoproj/workflow-controller:v3.4.10']
-  - version: 3.4.8
-    kube: ['1.27', '1.26', '1.25']
-    requirements: []
-    incompatibilities: []
-    summary: null
-    chart_version: 0.31.0
-    images: ['quay.io/argoproj/argocli:v3.4.8', 'quay.io/argoproj/workflow-controller:v3.4.8']
+    chart_version: 0.34.0
+    images: ['quay.io/argoproj/argocli:v3.4.11', 'quay.io/argoproj/workflow-controller:v3.4.11']
   - version: 3.4.0
     kube: ['1.26', '1.25', '1.24']
     requirements: []
@@ -13729,6 +13875,27 @@ addons:
   release_url: https://github.com/vectordotdev/vector/releases/tag/v{vsn}
   helm_repository_url: https://helm.vector.dev/
   versions:
+  - version: 0.58.0
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 0.58.0
+    images: ['docker.io/timberio/vector:0.58.0-distroless-libc']
+  - version: 0.57.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 0.57.0
+    images: ['docker.io/timberio/vector:0.57.0-distroless-libc']
+  - version: 0.56.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 0.56.0
+    images: ['docker.io/timberio/vector:0.56.0-distroless-libc']
   - version: 0.55.0
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -14028,22 +14195,29 @@ addons:
     summary: null
     chart_version: 0.26.0
     images: ['timberio/vector:0.33.0-distroless-libc']
-  - version: 0.32.0
+  - version: 0.32.2
     kube: ['1.28', '1.27', '1.26']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 0.25.0
+    images: ['timberio/vector:0.32.2-distroless-libc']
+  - version: 0.32.0
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary: null
     chart_version: 0.24.0
     images: ['timberio/vector:0.32.0-distroless-libc']
   - version: 0.31.0
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary: null
     chart_version: 0.23.0
     images: ['timberio/vector:0.31.0-distroless-libc']
   - version: 0.30.0
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     incompatibilities: []
     summary: null
@@ -15683,8 +15857,26 @@ addons:
   helm_values: dcgmExporter.config.name=default
   readme_url: https://github.com/NVIDIA/gpu-operator/blob/main/README.md
   versions:
+  - version: 26.7.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    chart_version: 26.7.0
+    images: ['nvcr.io/nvidia/gpu-operator:v26.7.0', 'registry.k8s.io/nfd/node-feature-discovery:v0.19.0']
+    incompatibilities: []
+  - version: 26.3.3
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    chart_version: 26.3.3
+    images: ['nvcr.io/nvidia/gpu-operator:v26.3.3', 'registry.k8s.io/nfd/node-feature-discovery:v0.18.3']
+    incompatibilities: []
+  - version: 26.3.2
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    chart_version: 26.3.2
+    images: ['nvcr.io/nvidia/gpu-operator:v26.3.2', 'registry.k8s.io/nfd/node-feature-discovery:v0.18.3']
+    incompatibilities: []
   - version: 26.3.1
-    kube: ['1.35', '1.34', '1.33']
+    kube: ['1.36', '1.35', '1.34']
     requirements: []
     chart_version: 26.3.1
     images: ['nvcr.io/nvidia/gpu-operator:v26.3.1', 'registry.k8s.io/nfd/node-feature-discovery:v0.18.3']
@@ -15816,13 +16008,13 @@ addons:
     images: ['nvcr.io/nvidia/gpu-operator:v23.6.0', 'registry.k8s.io/nfd/node-feature-discovery:v0.13.1']
     incompatibilities: []
   - version: 23.3.2
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     chart_version: 23.3.2
     images: ['nvcr.io/nvidia/gpu-operator:v23.3.2', 'registry.k8s.io/nfd/node-feature-discovery:v0.12.1']
     incompatibilities: []
   - version: 23.3.1
-    kube: ['1.27', '1.26', '1.25']
+    kube: ['1.26', '1.25', '1.24']
     requirements: []
     chart_version: 23.3.1
     images: ['nvcr.io/nvidia/gpu-operator:v23.3.1', 'registry.k8s.io/nfd/node-feature-discovery:v0.12.1']
@@ -16040,13 +16232,27 @@ addons:
   helm_repository_url: https://helm.elastic.co
   readme_url: https://github.com/elastic/elasticsearch/blob/main/README.asciidoc
   versions:
-  - version: 9.4.1
+  - version: 9.5.2
     kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 9.4.1
-    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.4.1', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
+    chart_version: 9.5.2
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.5.2', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
+  - version: 9.5.0
+    kube: ['1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 9.5.0
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.5.0', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
+  - version: 9.4.6
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 9.4.6
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:9.4.6', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
   - version: 9.4.0
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -16117,6 +16323,13 @@ addons:
     summary: null
     chart_version: 9.0.0
     images: ['docker.elastic.co/elastic-agent/elastic-agent:9.0.0', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.15.0']
+  - version: 8.19.21
+    kube: ['1.37', '1.36', '1.35']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 8.19.21
+    images: ['docker.elastic.co/elastic-agent/elastic-agent:8.19.21', 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0']
   - version: 8.19.14
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -16608,6 +16821,27 @@ addons:
   helm_repository_url: oci://ghcr.io/kserve/charts/kserve
   chart_name: kserve
   versions:
+  - version: 0.20.0
+    kube: ['1.35', '1.34', '1.33', '1.32']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: v0.20.0
+    images: []
+  - version: 0.19.0
+    kube: ['1.35', '1.34', '1.33', '1.32']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: v0.19.0
+    images: []
+  - version: 0.18.1
+    kube: ['1.35', '1.34', '1.33', '1.32']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: v0.18.1
+    images: []
   - version: 0.17.0
     kube: ['1.35', '1.34', '1.33', '1.32']
     requirements: []
@@ -16952,29 +17186,15 @@ addons:
   helm_repository_url: https://kubescape.github.io/helm-charts
   helm_values: clusterName=example,account=example
   versions:
-  - version: 1.40.1
+  - version: 1.40.3
     kube: ['1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
-    summary:
-      helm_changes: "- **kubevuln image tag bumped** to `v0.3.137` (from `v0.3.136`).\n\
-        - **New kubevuln setting:** a `riskAcceptance` flag was added to support SecurityException\
-        \ CRD integration (configure this only if you\u2019re using/plan to use SecurityException-based\
-        \ risk acceptance).\n- **Behavior change in chart templating:** `operator.httpExporterConfig`\
-        \ is now **gated by** `synchronizer.enabled`. If you previously set `operator.httpExporterConfig`\
-        \ while `synchronizer.enabled=false`, it will no longer render/apply; enable\
-        \ the synchronizer or move to the supported configuration path.\n"
-      chart_updates: [Update kubevuln component image tag to v0.3.137 and expose configuration
-          for risk acceptance integration., Fix templating so operator `httpExporterConfig`
-          is only applied when `synchronizer.enabled` is enabled.]
-      features: [Kubevuln adds a `riskAcceptance` flag to integrate with SecurityException
-          CRDs for risk acceptance workflows., Chart now supports/threads through
-          the kubevuln risk acceptance configuration (when enabled).]
-      breaking_changes: ['If you rely on `operator.httpExporterConfig` with `synchronizer.enabled=false`,
-          that configuration will no longer be deployed because it is now gated; you
-          must enable the synchronizer or adjust your configuration approach.']
-    chart_version: 1.40.1
-    images: []
+    summary: null
+    chart_version: 1.40.3
+    images: ['quay.io/kubescape/http-request:v0.2.20', 'quay.io/kubescape/kubescape:v4.0.11',
+      'quay.io/kubescape/kubevuln:v0.3.159', 'quay.io/kubescape/node-agent:v0.3.158',
+      'quay.io/kubescape/operator:v0.2.159', 'quay.io/kubescape/storage:v0.0.297']
   - version: 1.40.0
     kube: ['1.36', '1.35', '1.34']
     requirements: []
@@ -17567,15 +17787,15 @@ addons:
   helm_values: wizApiToken.secret.create=false,imagePullSecret.username=dummy,imagePullSecret.password=dummy
   chart_name: wiz-sensor
   versions:
-  - version: 1.0.10715
-    kube: ['1.36', '1.35', '1.34', '1.33']
+  - version: 1.0.11966
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
-    chart_version: 1.0.10715
+    chart_version: 1.0.11966
     images: ['wizio.azurecr.io/sensor:v1']
   - version: 1.0.3999
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17597,7 +17817,7 @@ addons:
     chart_version: 3.12.10-preview
     images: []
   - version: 2.12.0
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17610,8 +17830,22 @@ addons:
     summary: null
     chart_version: 3.12.0-preview.2
     images: []
+  - version: 2.11.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.12.0-preview.2
+    images: []
   - version: 2.10.0
     kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.11.0-preview
+    images: []
+  - version: 2.10.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17624,8 +17858,22 @@ addons:
     summary: null
     chart_version: 3.9.4
     images: []
+  - version: 2.9.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.9.4
+    images: []
   - version: 2.8.0
     kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.8.0-preview
+    images: []
+  - version: 2.8.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17638,8 +17886,22 @@ addons:
     summary: null
     chart_version: 3.7.0-preview
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.7']
+  - version: 2.7.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.7.0-preview
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.7']
   - version: 2.6.0
     kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.6.0-preview
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.6']
+  - version: 2.6.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17652,8 +17914,22 @@ addons:
     summary: null
     chart_version: 3.5.0-alpha
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.5']
+  - version: 2.5.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.5.0-alpha
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.5']
   - version: 2.4.0
     kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.4.0-alpha
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.4']
+  - version: 2.4.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17666,8 +17942,22 @@ addons:
     summary: null
     chart_version: 3.1.3
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.3']
+  - version: 2.3.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.1.3
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.3']
   - version: 2.2.0
     kube: ['1.36', '1.35', '1.34', '1.33']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 3.1.0-alpha
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.2']
+  - version: 2.2.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17680,6 +17970,20 @@ addons:
     summary: null
     chart_version: 2.3.0-alpha
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.1']
+  - version: 2.1.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.3.0-alpha
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.1']
+  - version: 2.0.162274
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.0.0
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2.0.162274']
   - version: 2.0.0
     kube: ['1.36', '1.35', '1.34', '1.33']
     requirements: []
@@ -17687,22 +17991,29 @@ addons:
     summary: null
     chart_version: 2.2.0
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2']
+  - version: 2.0.0
+    kube: ['1.37', '1.36', '1.35', '1.34']
+    requirements: []
+    incompatibilities: []
+    summary: null
+    chart_version: 2.2.0
+    images: ['wiziopublic.azurecr.io/wiz-app/wiz-admission-controller:2']
   - version: 1.0.152921
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
     chart_version: 1.0.0
     images: []
   - version: 0.2.119420
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
     chart_version: 0.0.11
     images: []
   - version: 0.0.1
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
@@ -17724,7 +18035,7 @@ addons:
     chart_version: 0.1.1
     images: ['wiziopublic.azurecr.io/wiz-app/wiz-network-analyzer:0.1']
   - version: 0.1.0
-    kube: ['1.36', '1.35', '1.34', '1.33']
+    kube: ['1.37', '1.36', '1.35', '1.34']
     requirements: []
     incompatibilities: []
     summary: null
