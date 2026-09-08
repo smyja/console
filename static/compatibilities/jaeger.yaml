@@ -135,8 +135,7 @@ versions:
   incompatibilities: []
   summary: null
   chart_version: 0.68.2
-  images: ['cassandra:3.11.6', 'jaegertracing/jaeger-agent:1.39.0', 'jaegertracing/jaeger-cassandra-schema:1.39.0',
-    'jaegertracing/jaeger-collector:1.39.0', 'jaegertracing/jaeger-query:1.39.0']
+  images: []
 - version: 1.38.0
   kube: ['1.25', '1.24', '1.23', '1.22', '1.21', '1.20', '1.19']
   requirements: []
