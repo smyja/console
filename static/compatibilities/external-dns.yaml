@@ -419,7 +419,7 @@ versions:
         change: flags/args mapping, resource names, and RBAC may differ from your
         current installation method.']
   chart_version: 1.3.2
-  images: ['k8s.gcr.io/external-dns/external-dns:v0.10.0']
+  images: []
 - version: 0.9.0
   kube: ['1.21', '1.20', '1.19', '1.18', '1.17', '1.16', '1.15', '1.14', '1.13', '1.12',
     '1.11', '1.10']

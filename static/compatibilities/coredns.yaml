@@ -36,7 +36,7 @@ versions:
   incompatibilities: []
   summary: null
   chart_version: 1.19.6
-  images: ['coredns/coredns:1.9.3']
+  images: []
 - version: 1.8.6
   kube: ['1.24', '1.23']
   requirements: []
