@@ -3,6 +3,41 @@ git_url: https://github.com/vectordotdev/vector/
 release_url: https://github.com/vectordotdev/vector/releases/tag/v{vsn}
 helm_repository_url: https://helm.vector.dev/
 versions:
+- version: 0.60.0
+  kube: ['1.37', '1.36', '1.35']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.60.0
+  images: ['docker.io/timberio/vector:0.60.0-distroless-libc']
+- version: 0.59.0
+  kube: ['1.37', '1.36', '1.35']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.59.0
+  images: ['docker.io/timberio/vector:0.59.0-distroless-libc']
+- version: 0.58.0
+  kube: ['1.37', '1.36', '1.35']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.58.0
+  images: ['docker.io/timberio/vector:0.58.0-distroless-libc']
+- version: 0.57.0
+  kube: ['1.36', '1.35', '1.34']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.57.0
+  images: ['docker.io/timberio/vector:0.57.0-distroless-libc']
+- version: 0.56.0
+  kube: ['1.36', '1.35', '1.34']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.56.0
+  images: ['docker.io/timberio/vector:0.56.0-distroless-libc']
 - version: 0.55.0
   kube: ['1.36', '1.35', '1.34']
   requirements: []
@@ -291,15 +326,22 @@ versions:
   summary: null
   chart_version: 0.28.0
   images: ['timberio/vector:0.34.0-distroless-libc']
-- version: 0.33.0
+- version: 0.33.1
   kube: ['1.28', '1.27', '1.26']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 0.27.0
+  images: ['timberio/vector:0.33.1-distroless-libc']
+- version: 0.33.0
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.26.0
   images: ['timberio/vector:0.33.0-distroless-libc']
 - version: 0.32.0
-  kube: ['1.28', '1.27', '1.26']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
@@ -320,98 +362,98 @@ versions:
   chart_version: 0.22.1
   images: ['timberio/vector:0.30.0-distroless-libc']
 - version: 0.29.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.21.0
   images: ['timberio/vector:0.29.0-distroless-libc']
 - version: 0.28.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.20.0
   images: ['timberio/vector:0.28.0-distroless-libc']
 - version: 0.27.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.19.0
   images: ['timberio/vector:0.27.0-distroless-libc']
 - version: 0.26.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.18.0
   images: ['timberio/vector:0.26.0-distroless-libc']
 - version: 0.25.1
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.17.0
   images: ['timberio/vector:0.25.1-distroless-libc']
 - version: 0.24.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.16.0
   images: ['timberio/vector:0.24.0-distroless-libc']
 - version: 0.23.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.15.0
   images: ['timberio/vector:0.23.0-distroless-libc']
 - version: 0.22.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.13.0
   images: ['timberio/vector:0.22.0-distroless-libc']
 - version: 0.21.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.10.0
   images: ['timberio/vector:0.21.0-distroless-libc']
 - version: 0.20.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.7.0
   images: ['timberio/vector:0.20.0-distroless-libc']
 - version: 0.19.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.4.0
   images: ['timberio/vector:0.19.0-distroless-libc']
 - version: 0.18.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.2.1
   images: ['timberio/vector:0.18.0-distroless-libc']
 - version: 0.17.3
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
   chart_version: 0.1.1
   images: ['timberio/vector:0.17.3-distroless-libc']
 - version: 0.16.1
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
