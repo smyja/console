@@ -5,6 +5,20 @@ helm_repository_url: https://open-policy-agent.github.io/gatekeeper/charts
 chart_name: gatekeeper
 eolApiSlug: gatekeeper
 versions:
+- version: 3.23.1
+  kube: ['1.37', '1.36', '1.35']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 3.23.1
+  images: ['curlimages/curl:8.20.0', 'openpolicyagent/gatekeeper-crds:v3.23.1', 'openpolicyagent/gatekeeper:v3.23.1']
+- version: 3.23.0
+  kube: ['1.36', '1.35', '1.34']
+  requirements: []
+  incompatibilities: []
+  summary: null
+  chart_version: 3.23.0
+  images: ['curlimages/curl:8.20.0', 'openpolicyagent/gatekeeper-crds:v3.23.0', 'openpolicyagent/gatekeeper:v3.23.0']
 - version: 3.22.2
   kube: ['1.36', '1.35', '1.34']
   requirements: []
@@ -96,6 +110,7 @@ versions:
         notes compared to 3.21.0.]
   chart_version: 3.21.1
   images: ['curlimages/curl:8.12.0', 'openpolicyagent/gatekeeper-crds:v3.21.1', 'openpolicyagent/gatekeeper:v3.21.1']
+  eolAt: '2026-07-09'
 - version: 3.21.0
   kube: ['1.34', '1.33', '1.32']
   requirements: []
@@ -139,6 +154,7 @@ versions:
         then be removed).']
   chart_version: 3.21.0
   images: ['curlimages/curl:8.12.0', 'openpolicyagent/gatekeeper-crds:v3.21.0', 'openpolicyagent/gatekeeper:v3.21.0']
+  eolAt: '2026-07-09'
 - version: 3.20.1
   kube: ['1.34', '1.33', '1.32']
   requirements: []
@@ -602,32 +618,13 @@ versions:
   chart_version: 3.14.0
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.14.0', 'openpolicyagent/gatekeeper:v3.14.0']
   eolAt: '2024-05-09'
-- version: 3.13.2
+- version: 3.13.4
   kube: ['1.28', '1.27', '1.26']
   requirements: []
   incompatibilities: []
-  summary:
-    helm_changes: "- **v3.13.2 is the first 3.13.x tag that ships a Helm chart**;\
-      \ v3.13.1 did not include one.\n- **No Helm values changes were called out**\
-      \ in the v3.13.2 application release notes; expect the same behavior as v3.13.1.\n\
-      - For the 3.13.0 jump, note the new/updated Helm-facing knobs implied by the\
-      \ release notes:\n  - `webhookURL` Helm option added.\n  - Ability to choose\
-      \ **deployment strategy** for `controller-manager`.\n  - Support adding **PriorityClass**\
-      \ to Jobs.\n  - Pre-upgrade hook job: retries configured (helps reliability\
-      \ during upgrades).\n"
-    chart_updates: ['v3.13.2 release is functionally identical to v3.13.1, but **adds/publishes
-        the Helm chart artifact** for the release tag.', 'In 3.13.0 line, chart-related
-        fixes/robustness improvements mentioned include webhook retry logic for Helm
-        probes and retry configuration on the pre-upgrade hook job.']
-    features: ['Audit: added PubSub support for audit eventing/integration.', ExpansionTemplates
-        graduated to **beta** (more stable API/behavior expectations)., Added an experimental
-        **ValidatingAdmissionPolicy (VAP) driver** prototype., Added support for **External
-        Data Provider audit response cache** (performance/availability improvement).,
-      'Added **observability statistics/metrics** for admission, audit, and gator
-        CLI.']
-    breaking_changes: []
-  chart_version: 3.13.2
-  images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.13.2', 'openpolicyagent/gatekeeper:v3.13.2']
+  summary: null
+  chart_version: 3.13.4
+  images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.13.4', 'openpolicyagent/gatekeeper:v3.13.4']
   eolAt: '2024-02-05'
 - version: 3.13.0
   kube: ['1.27', '1.26', '1.25']
@@ -672,7 +669,7 @@ versions:
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.13.0', 'openpolicyagent/gatekeeper:v3.13.0']
   eolAt: '2024-02-05'
 - version: 3.12.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -709,7 +706,7 @@ versions:
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.12.0', 'openpolicyagent/gatekeeper:v3.12.0']
   eolAt: '2023-11-01'
 - version: 3.11.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -759,7 +756,7 @@ versions:
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.11.0', 'openpolicyagent/gatekeeper:v3.11.0']
   eolAt: '2023-08-08'
 - version: 3.10.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -809,7 +806,7 @@ versions:
   chart_version: 3.10.0
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.10.0', 'openpolicyagent/gatekeeper:v3.10.0']
 - version: 3.9.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -857,7 +854,7 @@ versions:
   chart_version: 3.9.0
   images: ['curlimages/curl:7.83.1', 'openpolicyagent/gatekeeper-crds:v3.9.0', 'openpolicyagent/gatekeeper:v3.9.0']
 - version: 3.8.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -918,7 +915,7 @@ versions:
   chart_version: 3.8.0
   images: ['openpolicyagent/gatekeeper-crds:v3.8.0', 'openpolicyagent/gatekeeper:v3.8.0']
 - version: 3.7.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -959,7 +956,7 @@ versions:
   chart_version: 3.7.0
   images: ['openpolicyagent/gatekeeper-crds:v3.7.0', 'openpolicyagent/gatekeeper:v3.7.0']
 - version: 3.6.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -998,7 +995,7 @@ versions:
   images: ['line/kubectl-kustomize:1.20.4-4.0.5', 'openpolicyagent/gatekeeper-crds:v3.6.0',
     'openpolicyagent/gatekeeper:v3.6.0']
 - version: 3.5.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -1031,7 +1028,7 @@ versions:
   chart_version: 3.5.0
   images: ['line/kubectl-kustomize:1.20.4-4.0.5', 'openpolicyagent/gatekeeper:v3.5.0']
 - version: 3.4.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -1068,7 +1065,7 @@ versions:
   chart_version: 3.4.0
   images: ['line/kubectl-kustomize:1.20.4-4.0.5', 'openpolicyagent/gatekeeper:v3.4.0']
 - version: 3.3.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -1118,7 +1115,7 @@ versions:
   chart_version: 3.3.0
   images: ['openpolicyagent/gatekeeper:v3.3.0']
 - version: 3.2.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary:
@@ -1133,7 +1130,7 @@ versions:
   chart_version: 3.2.0
   images: ['openpolicyagent/gatekeeper:v3.2.0']
 - version: 3.1.0
-  kube: ['1.26', '1.25', '1.24']
+  kube: ['1.27', '1.26', '1.25']
   requirements: []
   incompatibilities: []
   summary: null
